@@ -5,9 +5,8 @@
 // ===================================================================
 const Config = {
   DATA_FILE:            'spots.json',
-  NORMAL_THRESHOLD:     30,    // m: この圏内3秒で自動発見
+  NORMAL_THRESHOLD:     30,    // m: この圏内でアラート表示・I'M HEREで発見
   RELAXED_THRESHOLD:    80,    // m: 「着いたよ」ボタンが有効になる半径
-  CONFIRM_DURATION:     3000,  // ms: 自動発見までの連続滞在時間
   MAX_DISPLAY_DISTANCE: 500,   // m: レーダー最大表示距離
   FAR_GPS_THRESHOLD:    200,   // m: これより遠いと低精度GPSモードに切替
   USE_LOG_SCALE:        true,  // 対数スケールでの距離描画
@@ -706,17 +705,31 @@ class CameraManager {
       ctx.fillText(this.spotName, c, cy);
     }
 
-    // HUD: REC (左上・オレンジドット) + 時刻 (右上)
+    // HUD: REC (左上) + SPOT-RADAR (中央) + 時刻 (右上)
     const hy = size * 0.135;
-    ctx.font         = "11px 'Silkscreen', monospace";
     ctx.textBaseline = 'middle';
+
+    // REC ドット
     ctx.fillStyle = ORANGE;
-    ctx.beginPath(); ctx.arc(size * 0.2, hy, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(size * 0.15, hy, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.font      = "10px 'Silkscreen', monospace";
     ctx.fillStyle = WHITE;
     ctx.textAlign = 'left';
-    ctx.fillText('REC', size * 0.2 + 9, hy);
+    ctx.fillText('REC', size * 0.15 + 8, hy);
+
+    // SPOT-RADAR ブランドラベル (中央)
+    ctx.font      = "bold 13px 'Silkscreen', monospace";
+    ctx.textAlign = 'center';
+    ctx.fillStyle = WHITE;
+    ctx.globalAlpha = 0.85;
+    ctx.fillText('SPOT-RADAR', c, hy);
+    ctx.globalAlpha = 1;
+
+    // 時刻 (右上)
+    ctx.font      = "10px 'Silkscreen', monospace";
     ctx.textAlign = 'right';
-    ctx.fillText(new Date().toLocaleTimeString('ja-JP'), size * 0.8, hy);
+    ctx.fillStyle = WHITE;
+    ctx.fillText(new Date().toLocaleTimeString('ja-JP'), size * 0.85, hy);
   }
 
   capture() {
@@ -907,9 +920,8 @@ class App {
     this.camera  = new CameraManager();
     this.admin   = null;
 
-    // 自動発見タイマー管理
+    // 圏内エントリー追跡 (バイブ一度だけ)
     this._confirmSpotId   = null;
-    this._confirmStart    = null;
     this._lastFoundSpot   = null;
 
     // 手動座標オーバーライド
@@ -1019,21 +1031,18 @@ class App {
   _checkProximity() {
     const pos     = this._getPosition();
     const closest = this.spots.getClosest(pos);
-    if (!closest || !pos) { this._confirmSpotId = null; this._confirmStart = null; return; }
+    if (!closest || !pos) { this._confirmSpotId = null; return; }
 
     const dist = Geo.distance(pos.lat, pos.lng, closest.lat, closest.lng);
 
     if (dist <= Config.NORMAL_THRESHOLD) {
+      // 圏内に入った瞬間だけバイブ
       if (this._confirmSpotId !== closest.id) {
         this._confirmSpotId = closest.id;
-        this._confirmStart  = Date.now();
         vibrate(Config.VIBRATE_NEAR);
-      } else if (Date.now() - this._confirmStart >= Config.CONFIRM_DURATION) {
-        this._foundSpot(closest);
       }
     } else {
       this._confirmSpotId = null;
-      this._confirmStart  = null;
     }
   }
 
@@ -1112,11 +1121,7 @@ class App {
     document.getElementById('arrived-btn').disabled        = false;
 
     if (inNormal) {
-      const elapsed = this._confirmSpotId === closest.id
-        ? Math.floor((Date.now() - this._confirmStart) / 1000)
-        : 0;
-      const remain = Math.max(0, Math.ceil(Config.CONFIRM_DURATION / 1000) - elapsed);
-      this._setAlert(`圏内！ あと ${remain} 秒で自動発見...`);
+      this._setAlert('目的地到着！ 記念写真を撮ろう');
     } else {
       this._setAlert('');
     }
@@ -1210,27 +1215,48 @@ class App {
 
   _unzoom() { document.getElementById('gallery-zoom').hidden = true; }
 
-  /** 拡大中の写真を端末に保存 (共有シート → なければダウンロード) */
+  /** 拡大中の写真を保存
+   *  1. PC Chrome/Edge: showSaveFilePicker (保存ダイアログ)
+   *  2. iOS Safari/PWA: Web Share API → 共有シートで「画像を保存」
+   *  3. その他 (Android等): <a download> でダウンロードフォルダへ
+   */
   async _saveCurrentPhoto() {
     const p = this._galPhotos[this._galZoomIdx];
     if (!p) return;
     const stamp = new Date(p.ts || Date.now()).toISOString().slice(0, 19).replace(/[:T]/g, '');
-    const fname = `spot-radar_${(p.name || 'photo').replace(/[\\/:*?"<>|\s]/g, '')}_${stamp}.jpg`;
+    const safeName = (p.name || 'photo').replace(/[\\/:*?"<>|\s]/g, '');
+    const fname = `spot-radar_${safeName}_${stamp}.jpg`;
 
-    // 可能なら共有シート(iOSの「画像を保存」等)を使う
-    let file = null;
-    try {
-      const blob = await (await fetch(p.url)).blob();
-      file = new File([blob], fname, { type: blob.type || 'image/jpeg' });
-    } catch (_) { /* Blob化失敗 → ダウンロードへ */ }
+    let blob = null;
+    try { blob = await (await fetch(p.url)).blob(); } catch (_) {}
 
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: p.name }); }
-      catch (_) { /* ユーザーキャンセル等は無視 */ }
-      return;
+    // ① PC: ファイル保存ダイアログ
+    if (blob && window.showSaveFilePicker) {
+      try {
+        const fh = await window.showSaveFilePicker({
+          suggestedName: fname,
+          types: [{ description: 'JPEG image', accept: { 'image/jpeg': ['.jpg'] } }],
+        });
+        const w = await fh.createWritable();
+        await w.write(blob);
+        await w.close();
+        return;
+      } catch (e) {
+        if (e.name !== 'AbortError') { /* キャンセル以外はフォールスルー */ }
+        else return;
+      }
     }
 
-    // フォールバック: ダウンロード
+    // ② iOS等: Web Share API (共有シート → 「画像を保存」)
+    if (blob) {
+      const file = new File([blob], fname, { type: blob.type || 'image/jpeg' });
+      if (navigator.canShare?.({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: p.name }); return; }
+        catch (e) { if (e.name === 'AbortError') return; }
+      }
+    }
+
+    // ③ フォールバック: <a download> (Android / Desktop)
     const a = document.createElement('a');
     a.href = p.url;
     a.download = fname;
@@ -1333,7 +1359,7 @@ class App {
 
     const msg = done
       ? `「${spot.name}」は\nすでに みつけた！`
-      : `「${spot.name}」の きはいを かんじる…\nここから ${dist}。`;
+      : `「${spot.name}」の けはいを かんじる…\nここから ${dist}。`;
 
     this._typeMessage(msg);
   }

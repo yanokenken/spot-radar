@@ -20,35 +20,56 @@
 
     <!-- GPS許可エラー画面 -->
     <div id="permission-screen" class="fullscreen-overlay" hidden>
+      <div class="overlay-header">
+        <span class="overlay-header-title">SPOT RADAR</span>
+      </div>
       <div class="overlay-content">
         <div class="overlay-icon">📡</div>
         <h2>位置情報が必要です</h2>
         <p>このアプリはGPSを使ってスポットを探します。<br>位置情報の使用を許可してください。</p>
-        <button id="retry-gps-btn" class="btn btn-primary">再試行</button>
+        <button id="retry-gps-btn" class="ep-button" type="button" style="width:100%">
+          <span class="ep-inside">再試行</span>
+        </button>
       </div>
     </div>
 
     <!-- 発見オーバーレイ -->
     <div id="found-overlay" class="fullscreen-overlay" hidden>
+      <div class="overlay-header">
+        <span class="overlay-header-title">SPOT RADAR</span>
+      </div>
       <div class="found-content">
         <div id="found-stars" class="found-stars"></div>
-        <div id="found-name" class="found-name"></div>
-        <div class="found-message">発見！</div>
+        <div class="found-screen">
+          <div class="found-message">発見！</div>
+          <div id="found-name" class="found-name"></div>
+        </div>
         <div id="found-photo-container" class="found-photo"></div>
         <div class="found-buttons">
-          <button id="found-camera-btn" class="btn btn-camera">📷 記念撮影</button>
-          <button id="found-ok-btn" class="btn btn-primary">つぎへ ▶</button>
+          <button id="found-camera-btn" class="ep-button" type="button" style="flex:1">
+            <span class="ep-inside gray">
+              <span class="material-symbols-outlined">photo_camera</span> SHOT
+            </span>
+          </button>
+          <button id="found-ok-btn" class="ep-button" type="button" style="flex:1">
+            <span class="ep-inside">NEXT ▶</span>
+          </button>
         </div>
       </div>
     </div>
 
     <!-- 全制覇画面 -->
     <div id="complete-overlay" class="fullscreen-overlay" hidden>
+      <div class="overlay-header">
+        <span class="overlay-header-title">SPOT RADAR</span>
+      </div>
       <div class="overlay-content">
         <div class="overlay-icon complete-icon">🐉</div>
         <h2>全スポット制覇！</h2>
         <p>すべてのガチャガチャを見つけたよ！<br>ドラゴンを召喚できるかも？</p>
-        <button id="reset-btn" class="btn btn-secondary">もう一度あそぶ</button>
+        <button id="reset-btn" class="ep-button" type="button" style="width:100%">
+          <span class="ep-inside dark-gray">もう一度あそぶ</span>
+        </button>
       </div>
     </div>
 
@@ -99,7 +120,7 @@
               <span id="gallery-zoom-cap" class="gallery-zoom-cap"></span>
               <button id="gallery-back" class="gallery-back" type="button">← 一覧に戻る</button>
               <button id="gallery-save" class="gallery-save" type="button">
-                <span class="material-symbols-outlined">download</span>保存
+                <span class="material-symbols-outlined">save_alt</span>保存
               </button>
             </div>
           </div>
@@ -177,8 +198,7 @@
             <span>WARNING</span>
           </div>
           <div class="caution-body">
-            <strong>あるきスマホ</strong>
-            見るときは<br>立ち止まって
+            あるきながらみないこと
             <div class="caution-code">SR-0822ME-1</div>
           </div>
         </div>

@@ -180,38 +180,39 @@ html, body {
 /* 下部の余白エリア (警告ステッカー置き場) */
 .device-base {
   flex: 1 1 auto;
-  position: relative;
-  min-height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 6px 12px;
+  min-height: 0;
 }
 
-/* ISO風 警告ステッカー (3ペイン: 三角アイコン | CAUTION帯 / 本文) */
+/* ISO風 警告ステッカー (3ペイン: ピクトグラム | WARNING帯 / 本文) */
 .caution-sticker {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
   display: flex;
-  width: 216px;
+  width: 176px;
   background: #fff;
-  border: 2px solid #111;
+  border: 1.5px solid #111;
   border-radius: 2px;
   overflow: hidden;
+  flex-shrink: 0;
 }
-/* 左ペイン: ハザード三角 */
+/* 左ペイン: ピクトグラム */
 .caution-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 58px;
+  width: 44px;
   flex-shrink: 0;
-  padding: 6px 4px;
-  border-right: 2px solid #111;
+  padding: 5px 3px;
+  border-right: 1.5px solid #111;
 }
 .caution-icon svg {
-  width: 48px;
-  height: 48px;
+  width: 34px;
+  height: 34px;
   display: block;
 }
-/* 右ペイン: 縦に CAUTION帯 + 本文 */
+/* 右ペイン: 縦に WARNING帯 + 本文 */
 .caution-main {
   flex: 1;
   min-width: 0;
@@ -221,35 +222,30 @@ html, body {
 .caution-head {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 7px;
-  background: #f5871f;   /* ANSI WARNING オレンジ */
-  border-bottom: 2px solid #111;
+  gap: 3px;
+  padding: 2px 6px;
+  background: #f5871f;
+  border-bottom: 1.5px solid #111;
   color: #111;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 11px;
   letter-spacing: 0.5px;
 }
 .caution-head .material-symbols-outlined {
-  font-size: 16px;
+  font-size: 13px;
   font-variation-settings: 'FILL' 1;
 }
 .caution-body {
   flex: 1;
-  padding: 5px 8px 6px;
+  padding: 4px 6px 5px;
   color: #111;
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.5;
 }
-.caution-body strong {
-  display: block;
-  font-size: 11px;
-  margin-bottom: 2px;
-}
 .caution-code {
-  margin-top: 4px;
+  margin-top: 3px;
   text-align: right;
-  font-size: 7px;
+  font-size: 6px;
   letter-spacing: 0.5px;
   color: #999;
 }
@@ -486,7 +482,7 @@ html, body {
   border-top: 1px solid rgba(0, 255, 65, 0.22);
   font-size: 13px;
   color: var(--green);
-  text-shadow: 0 0 3px rgba(0, 255, 65, 0.4);
+  text-shadow: 0 0 3px rgba(0, 255, 65, 0.1);
   letter-spacing: 1px;
   line-height: 1.7;
   white-space: pre-line;
@@ -504,7 +500,7 @@ html, body {
 .target-name {
   font-size: 10px;
   color: var(--green);
-  text-shadow: 0 0 3px rgba(0, 255, 65, 0.4);
+  text-shadow: 0 0 3px rgba(0, 255, 65, 0.1);
   letter-spacing: 1px;
   line-height: 1.4;
   white-space: nowrap;
@@ -517,7 +513,7 @@ html, body {
   font-size: 20px;
   font-weight: bold;
   color: var(--green);
-  text-shadow: 0 0 4px rgba(0, 255, 65, 0.5);
+  text-shadow: 0 0 4px rgba(0, 255, 65, 0.1);
   letter-spacing: 1px;
   line-height: 1.2;
   min-height: 26px;
@@ -535,7 +531,7 @@ html, body {
 .panel-alert.show {
   margin-top: 3px;
   min-height: 1.4em;
-  animation: alert-blink 0.7s steps(1, end) infinite;
+  animation: alert-blink 1.8s steps(1, end) infinite;
 }
 @keyframes alert-blink {
   0%   { opacity: 1; }
@@ -760,18 +756,48 @@ html, body {
   color: var(--text-dim);
 }
 
-/* ===== Fullscreen overlays ===== */
+/* ===== Fullscreen overlays (TE light body) ===== */
 .fullscreen-overlay {
   position: fixed;
   inset: 0;
-  background: var(--overlay-bg);
+  background: var(--bg);
   z-index: 100;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 24px;
 }
 .fullscreen-overlay[hidden] { display: none; }
+
+/* オーバーレイ共通ヘッダー (メインヘッダーと同じスタイル) */
+.overlay-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 2px solid #1a1a1a;
+  background: var(--bg);
+}
+.overlay-header-title {
+  position: relative;
+  padding-left: 16px;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #111;
+}
+.overlay-header-title::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #f05a22;
+}
 
 .overlay-content {
   display: flex;
@@ -780,10 +806,11 @@ html, body {
   gap: 18px;
   text-align: center;
   max-width: 320px;
+  width: 100%;
 }
 
 .overlay-icon {
-  font-size: 64px;
+  font-size: 56px;
   line-height: 1;
 }
 
@@ -796,15 +823,16 @@ html, body {
 }
 
 .overlay-content h2 {
-  font-size: 22px;
-  color: var(--yellow);
+  font-size: 18px;
+  font-weight: bold;
+  color: #111;
   letter-spacing: 2px;
 }
 
 .overlay-content p {
-  color: var(--white);
+  color: #444;
   line-height: 1.7;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* ===== Found overlay ===== */
@@ -812,42 +840,50 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
   animation: found-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 @keyframes found-in {
-  from { opacity: 0; transform: scale(0.6); }
+  from { opacity: 0; transform: scale(0.85); }
   to   { opacity: 1; transform: scale(1); }
 }
 
 .found-stars {
-  font-size: 32px;
+  font-size: 24px;
   letter-spacing: 4px;
-  color: #f4c500;
-  animation: star-burst 0.5s ease-out;
-}
-@keyframes star-burst {
-  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
-  60%  { transform: scale(1.2) rotate(5deg); }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-.found-name {
-  font-size: 26px;
-  font-weight: bold;
-  color: #fff;
-  letter-spacing: 3px;
-}
-
-.found-message {
-  font-size: 18px;
   color: #f05a22;
-  letter-spacing: 4px;
+}
+
+/* 発見スポット名 = INFO panel の黒スクリーン調 */
+.found-screen {
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(#151515, #090909);
+  border: 1px solid #000;
+  border-radius: 7px;
+  box-shadow: inset 0 2px 7px rgba(0,0,0,0.85);
+  text-align: center;
+}
+.found-message {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #f05a22;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.found-name {
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--green);
+  text-shadow: 0 0 4px rgba(0,255,65,0.5);
+  letter-spacing: 2px;
 }
 
 .found-photo {
-  width: 180px;
-  height: 180px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -857,16 +893,17 @@ html, body {
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-  border: 4px solid #f2f2f2;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  border: 3px solid #c6c6c6;
+  box-shadow:
+    inset 2px 2px 4px rgba(0,0,0,0.3),
+    0 3px 10px rgba(0,0,0,0.25);
 }
 .found-photo:empty { display: none; }
 
 .found-buttons {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 10px;
+  width: 100%;
 }
 
 /* ===== Camera modal ===== */
