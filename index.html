@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ドラゴンレーダー">
+  <meta name="theme-color" content="#001400">
+  <title>ドラゴンレーダー</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- GPS許可エラー画面 -->
+    <div id="permission-screen" class="fullscreen-overlay" hidden>
+      <div class="overlay-content">
+        <div class="overlay-icon">📡</div>
+        <h2>位置情報が必要です</h2>
+        <p>このアプリはGPSを使ってスポットを探します。<br>位置情報の使用を許可してください。</p>
+        <button id="retry-gps-btn" class="btn btn-primary">再試行</button>
+      </div>
+    </div>
+
+    <!-- 発見オーバーレイ -->
+    <div id="found-overlay" class="fullscreen-overlay" hidden>
+      <div class="found-content">
+        <div id="found-stars" class="found-stars"></div>
+        <div id="found-name" class="found-name"></div>
+        <div class="found-message">発見！</div>
+        <div id="found-photo-container" class="found-photo"></div>
+        <div class="found-buttons">
+          <button id="found-camera-btn" class="btn btn-camera">📷 記念撮影</button>
+          <button id="found-ok-btn" class="btn btn-primary">つぎへ ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 全制覇画面 -->
+    <div id="complete-overlay" class="fullscreen-overlay" hidden>
+      <div class="overlay-content">
+        <div class="overlay-icon complete-icon">🐉</div>
+        <h2>全スポット制覇！</h2>
+        <p>すべてのガチャガチャを見つけたよ！<br>ドラゴンを召喚できるかも？</p>
+        <button id="reset-btn" class="btn btn-secondary">もう一度あそぶ</button>
+      </div>
+    </div>
+
+    <!-- カメラモーダル -->
+    <div id="camera-modal" hidden>
+      <div id="camera-container">
+        <video id="camera-video" autoplay playsinline muted></video>
+        <canvas id="camera-canvas"></canvas>
+        <div id="camera-ui">
+          <button id="close-camera-btn" class="btn-icon close-btn" aria-label="閉じる">✕</button>
+          <button id="shutter-btn" class="shutter-btn" aria-label="シャッター"></button>
+          <div class="camera-spacer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- メインUI -->
+    <header class="header">
+      <div class="app-title" id="logo">SPOT RADAR</div>
+      <button id="settings-btn" class="ep-button settings-btn" type="button" aria-label="settings">
+        <span class="ep-inside">
+          <span class="material-symbols-outlined">settings</span>
+        </span>
+      </button>
+      <!-- GPS精度・発見数はレーダーHUDに描画。要素はJS用に保持 -->
+      <div class="header-right" hidden>
+        <div id="gps-status" class="gps-status"></div>
+        <div id="score-display" class="score"></div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div id="radar-wrapper">
+        <div class="radar-frame">
+          <canvas id="radar-canvas"></canvas>
+
+          <!-- 写真ギャラリー (レーダー枠内に表示) -->
+          <div id="gallery-overlay" class="gallery-overlay" hidden>
+            <button id="gallery-close" class="gallery-close" aria-label="閉じる">✕</button>
+            <div id="gallery-grid" class="gallery-grid"></div>
+            <div class="gallery-pager">
+              <button class="pg-prev" type="button" aria-label="前へ">‹</button>
+              <span id="gallery-page">1/1</span>
+              <button class="pg-next" type="button" aria-label="次へ">›</button>
+            </div>
+            <div id="gallery-zoom" class="gallery-zoom" hidden>
+              <img id="gallery-zoom-img" alt="記念写真">
+              <span id="gallery-zoom-cap" class="gallery-zoom-cap"></span>
+              <button id="gallery-back" class="gallery-back" type="button">← 一覧に戻る</button>
+              <button id="gallery-save" class="gallery-save" type="button">
+                <span class="material-symbols-outlined">download</span>保存
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- レーダー真下のINFOパネル(画面幅いっぱい) -->
+    <div class="panel-wrap">
+      <div class="panel-tabs">
+        <span class="panel-tab is-active">INFO</span>
+      </div>
+      <div id="target-panel" class="target-panel">
+        <div class="panel-screen">
+          <div id="target-name" class="target-name">スポットを探索中...</div>
+          <div id="target-distance" class="target-distance"></div>
+          <div id="panel-alert" class="panel-alert"></div>
+          <div id="panel-message" class="panel-message"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作ボタン群 (EP-133風パッド) -->
+    <div class="control-bar">
+      <div class="main-actions">
+        <button id="arrived-btn" class="ep-button arrived" type="button" disabled>
+          <span class="ep-inside">
+            <span class="material-symbols-outlined">where_to_vote</span>
+            <span class="arrived-label">I'M HERE!</span>
+          </span>
+        </button>
+        <div class="shot-group">
+          <button id="camera-open-btn" class="ep-button shot" type="button">
+            <span class="ep-inside gray">
+              <span class="material-symbols-outlined">photo_camera</span>
+              <span class="shot-label">SHOT</span>
+            </span>
+          </button>
+          <button id="gallery-btn" class="ep-button list-btn" type="button">
+            <span class="ep-inside dark-gray">
+              <span class="material-symbols-outlined">photo_library</span>
+              <span class="list-label">LIST</span>
+            </span>
+          </button>
+        </div>
+      </div>
+      <div id="arrived-hint" class="arrived-hint"></div>
+      <div id="action-buttons">
+        <button id="compass-permit-btn" class="ep-button" type="button">
+          <span class="ep-inside dark-gray">🧭 コンパス許可</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 下部の余白 + 警告ステッカー -->
+    <div class="device-base">
+      <div class="caution-sticker">
+        <div class="caution-icon">
+          <!-- 歩きスマホ ピクトグラム -->
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="52" cy="22" r="12" fill="#111"/>
+            <g fill="none" stroke="#111" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M55 33 L60 64"/>
+              <path d="M60 64 L44 98"/>
+              <path d="M60 64 L78 94"/>
+              <path d="M56 41 L44 53 L64 58"/>
+            </g>
+            <rect x="63" y="47" width="13" height="21" rx="2.5" fill="#111" transform="rotate(20 69 57)"/>
+            <rect x="65.5" y="50" width="8" height="15" rx="1" fill="#fff" transform="rotate(20 69 57)"/>
+          </svg>
+        </div>
+        <div class="caution-main">
+          <div class="caution-head">
+            <span class="material-symbols-outlined">warning</span>
+            <span>WARNING</span>
+          </div>
+          <div class="caution-body">
+            <strong>あるきスマホ</strong>
+            見るときは<br>立ち止まって
+            <div class="caution-code">SR-0822ME-1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- デバッグパネル -->
+    <div id="debug-panel" hidden>
+      <div id="debug-content"></div>
+    </div>
+
+    <!-- 管理者パネル -->
+    <div id="admin-panel" hidden>
+      <div class="admin-header">
+        <h3>SETTINGS</h3>
+        <button id="close-admin-btn" class="ep-button" type="button"><span class="ep-inside dark-gray">閉じる</span></button>
+      </div>
+      <div class="admin-body">
+        <div class="admin-section">
+          <h4 id="spot-form-title">スポットを追加</h4>
+
+          <label class="field-label" for="spot-name-input">名前</label>
+          <input type="text" id="spot-name-input" class="admin-input" placeholder="例: 一星球" autocomplete="off">
+
+          <div class="field-label-row">
+            <label class="field-label" for="spot-coord-input">座標（緯度, 経度）</label>
+            <button id="fill-gps-btn" class="btn-text">現在地を入力</button>
+          </div>
+          <input type="text" id="spot-coord-input" class="admin-input" placeholder="例: 35.681236, 139.767125" autocomplete="off" inputmode="decimal">
+
+          <label class="field-label" for="spot-radius-input">判定半径（m）</label>
+          <input type="number" id="spot-radius-input" class="admin-input" placeholder="30" min="10" max="200">
+
+          <div class="form-actions">
+            <button id="register-spot-btn" class="ep-button" type="button"><span class="ep-inside">追加する</span></button>
+            <button id="cancel-edit-btn" class="ep-button" type="button" hidden><span class="ep-inside dark-gray">キャンセル</span></button>
+          </div>
+          <div id="register-status" class="register-status"></div>
+        </div>
+
+        <div class="admin-section">
+          <h4>登録済みスポット</h4>
+          <div id="admin-spot-list"></div>
+        </div>
+
+        <div class="admin-section">
+          <h4>テスト・デバッグ</h4>
+          <p class="admin-note">座標を直接入力してGPSの代わりに使用できます</p>
+          <div class="coord-row">
+            <input type="number" id="mock-lat-input" class="admin-input coord-input" placeholder="緯度 (例: 35.6812)" step="0.000001">
+            <input type="number" id="mock-lng-input" class="admin-input coord-input" placeholder="経度 (例: 139.7671)" step="0.000001">
+          </div>
+          <div class="coord-buttons">
+            <button id="set-mock-pos-btn" class="ep-button" type="button"><span class="ep-inside">この座標を使用</span></button>
+            <button id="clear-mock-pos-btn" class="ep-button" type="button" hidden><span class="ep-inside dark-gray">GPS再開</span></button>
+          </div>
+          <div id="mock-pos-status" class="register-status"></div>
+          <p class="admin-note" style="margin-top:12px">URLに ?lat=緯度&amp;lng=経度 を付けても座標を固定できます</p>
+          <button id="clear-found-btn" class="ep-button" type="button" style="margin-top:4px"><span class="ep-inside dark-gray">発見履歴をリセット</span></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
