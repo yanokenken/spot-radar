@@ -1493,18 +1493,21 @@ class App {
   }
 
   _setupModeButtons() {
-    const btns        = document.querySelectorAll('.mode-btn');
-    const listScreen   = document.getElementById('list-screen');
-    const clockScreen  = document.getElementById('clock-screen');
-    const gameScreen   = document.getElementById('game-screen');
-    const manualScreen = document.getElementById('manual-overlay');
+    const btns          = document.querySelectorAll('.mode-btn');
+    const listScreen    = document.getElementById('list-screen');
+    const clockScreen   = document.getElementById('clock-screen');
+    const galleryOverlay = document.getElementById('gallery-overlay');
+    const gameScreen    = document.getElementById('game-screen');
+    const manualScreen  = document.getElementById('manual-overlay');
+    this._modeBtns     = btns;
     this._currentMode  = 0;
 
     const hideAll = () => {
-      listScreen.hidden   = true;
-      clockScreen.hidden  = true;
-      gameScreen.hidden   = true;
-      manualScreen.hidden = true;
+      listScreen.hidden    = true;
+      clockScreen.hidden   = true;
+      galleryOverlay.hidden = true;
+      gameScreen.hidden    = true;
+      manualScreen.hidden  = true;
       if (this._clockInterval) { clearInterval(this._clockInterval); this._clockInterval = null; }
     };
 
@@ -1519,11 +1522,19 @@ class App {
         clockScreen.hidden = false;
         this._clockInterval = setInterval(() => this._updateClock(), 1000);
       } else if (idx === 3) {
-        gameScreen.hidden = false;
+        this._galPhotos = this._collectPhotos();
+        this._galPage   = 0;
+        document.getElementById('gallery-zoom').hidden = true;
+        galleryOverlay.hidden = false;
+        this._renderGallery();
       } else if (idx === 4) {
+        gameScreen.hidden = false;
+      } else if (idx === 5) {
         manualScreen.hidden = false;
       }
     };
+
+    this._showMode = showMode;
 
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1533,11 +1544,6 @@ class App {
       });
     });
 
-    // manual-overlay の × ボタン → レーダーに戻る
-    document.getElementById('manual-close').onclick = () => {
-      btns.forEach((b, i) => b.classList.toggle('is-active', i === 0));
-      showMode(0);
-    };
   }
 
   _renderSpotList() {
@@ -1678,8 +1684,6 @@ class App {
     };
 
     // 写真ギャラリー
-    document.getElementById('gallery-btn').onclick   = () => this._openGallery();
-    document.getElementById('gallery-close').onclick = () => this._closeGallery();
     document.getElementById('gallery-back').onclick   = () => this._unzoom();
     document.getElementById('gallery-save').onclick   = () => this._saveCurrentPhoto();
     document.getElementById('gallery-delete').onclick = () => this._deleteCurrentPhoto();

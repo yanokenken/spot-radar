@@ -137,7 +137,6 @@
 
           <!-- 遊び方オーバーレイ -->
           <div id="manual-overlay" class="manual-overlay" hidden>
-            <button id="manual-close" class="manual-close" aria-label="閉じる">✕</button>
             <div class="manual-content">
               <div class="manual-title">HOW TO PLAY</div>
               <ol class="manual-steps">
@@ -172,7 +171,6 @@
 
           <!-- 写真ギャラリー (レーダー枠内に表示) -->
           <div id="gallery-overlay" class="gallery-overlay" hidden>
-            <button id="gallery-close" class="gallery-close" aria-label="閉じる">✕</button>
             <div id="gallery-grid" class="gallery-grid"></div>
             <div class="gallery-pager">
               <button class="pg-prev" type="button" aria-label="前へ">‹</button>
@@ -235,10 +233,15 @@
         </button>
         <button class="mode-btn ep-button" data-mode="3" type="button">
           <span class="ep-inside bg-color mode-inside">
-            <span class="material-symbols-outlined">sports_esports</span>
+            <span class="material-symbols-outlined">photo_library</span>
           </span>
         </button>
         <button class="mode-btn ep-button" data-mode="4" type="button">
+          <span class="ep-inside bg-color mode-inside">
+            <span class="material-symbols-outlined">sports_esports</span>
+          </span>
+        </button>
+        <button class="mode-btn ep-button" data-mode="5" type="button">
           <span class="ep-inside bg-color mode-inside">
             <span class="material-symbols-outlined">menu_book</span>
           </span>
@@ -276,12 +279,6 @@
             <span class="ep-inside gray">
               <span class="material-symbols-outlined">photo_camera</span>
               <span class="shot-label">SHOT</span>
-            </span>
-          </button>
-          <button id="gallery-btn" class="ep-button list-btn" type="button">
-            <span class="ep-inside dark-gray">
-              <span class="material-symbols-outlined">photo_library</span>
-              <span class="list-label">LIST</span>
             </span>
           </button>
         </div>

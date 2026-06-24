@@ -488,25 +488,6 @@ html, body {
 }
 .manual-overlay[hidden] { display: none; }
 
-.manual-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  background: #f05a22;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 13px;
-  font-family: sans-serif;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-}
 
 .manual-content {
   flex: 1;
@@ -642,23 +623,6 @@ html, body {
   line-height: 1;
   cursor: pointer;
   padding: 0 8px;
-}
-.gallery-close {
-  position: absolute;
-  top: 6px; right: 8px;
-  z-index: 7;
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: #f05a22;
-  border: 2px solid #fff;
-  color: #fff;
-  font-size: 16px;
-  font-weight: bold;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .gallery-zoom {
   position: absolute;
@@ -956,6 +920,7 @@ html, body {
   display: flex;
   gap: 8px;
   align-items: stretch;
+  min-height: 72px;
 }
 
 /* I'M HERE = 左カラム・高さいっぱいに伸びる */
@@ -977,32 +942,31 @@ html, body {
   font-size: 1.3em;
 }
 
-/* 右カラム: SHOT + LIST を縦積み */
+/* 右カラム: SHOT を縦積み */
 .shot-group {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-self: stretch;
 }
 
-/* SHOT / LIST = アイコン + ラベル横並び */
-.ep-button.shot,
-.ep-button.list-btn {
+/* SHOT = アイコン上・ラベル下の縦並び・正方形 */
+.ep-button.shot {
   font-size: 13px;
+  height: 100%;
+  aspect-ratio: 1 / 1;
 }
-.ep-button.shot .ep-inside,
-.ep-button.list-btn .ep-inside {
+.ep-button.shot .ep-inside {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 0.5em 0.75em 0.45em;
+  gap: 3px;
+  padding: 0.4em;
+  height: 100%;
 }
-.ep-button.shot .material-symbols-outlined,
-.ep-button.list-btn .material-symbols-outlined { font-size: 18px; }
-.shot-label,
-.list-label { letter-spacing: 0.1em; font-size: 10px; }
+.ep-button.shot .material-symbols-outlined { font-size: 18px; }
+.shot-label { letter-spacing: 0.1em; font-size: 10px; }
 
 /* Material Symbols (Googleアイコン) */
 .material-symbols-outlined {

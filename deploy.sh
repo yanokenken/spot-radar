@@ -10,6 +10,6 @@ echo "✓ cache version: $VER"
 
 git add index.html
 git diff --cached --quiet || git commit -m "deploy: cache bust $VER"
-git push
+git push -u origin main
 
 echo "✓ pushed to GitHub Pages"
