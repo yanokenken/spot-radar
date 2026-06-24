@@ -11,7 +11,7 @@ const Config = {
   FAR_GPS_THRESHOLD:    200,   // m: これより遠いと低精度GPSモードに切替
   USE_LOG_SCALE:        true,  // 対数スケールでの距離描画
   COMPASS_ALPHA:        0.12,  // コンパス補間係数 (小さいほど滑らか)
-  SCAN_SPEED:           1.5,   // レーダー走査線の速度 (度/フレーム)
+  SCAN_SPEED:           0.6,   // レーダー走査線の速度 (度/フレーム)
   VIBRATE_NEAR:         [40],
   VIBRATE_FOUND:        [80, 60, 200, 60, 400],
 };
@@ -496,7 +496,7 @@ class RadarRenderer {
     const trailSteps = 24;
     for (let i = 0; i < trailSteps; i++) {
       const frac   = i / trailSteps;
-      const alpha  = 0.10 * (1 - frac);
+      const alpha  = 0.065 * (1 - frac);
       const startA = scanRad - trailArc * (i + 1) / trailSteps;
       const endA   = scanRad - trailArc * i / trailSteps;
       ctx.fillStyle = `rgba(${this.theme.sweep}, ${alpha})`;
@@ -508,7 +508,7 @@ class RadarRenderer {
     }
 
     // 走査線本体
-    ctx.strokeStyle = `rgba(${this.theme.sweep}, 0.85)`;
+    ctx.strokeStyle = `rgba(${this.theme.sweep}, 0.6)`;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
