@@ -1,24 +1,30 @@
 {
-  "name": "spot-radar",
-  "short_name": "SpotRadar",
+  "name": "SPOT RADAR",
+  "short_name": "SPOT RADAR",
   "description": "登録したスポット（座標）を探すお出かけアプリ",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#001400",
-  "theme_color": "#00ff41",
+  "theme_color": "#001400",
   "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

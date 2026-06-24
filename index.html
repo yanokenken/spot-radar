@@ -7,8 +7,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="spot radar">
   <meta name="theme-color" content="#001400">
-  <title>ドラゴンレーダー</title>
+  <title>Spot Radar</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap">
@@ -165,7 +167,21 @@
                   <span class="manual-step-text">スポット以外の場所でも <span class="manual-highlight">SHOT</span> で写真を撮れます。撮った写真は <span class="manual-highlight">LIST</span> からいつでも確認できますよ</span>
                 </li>
               </ol>
-              <p class="manual-footer">SPOT RADAR — ver. 1.0</p>
+              <div class="manual-title" style="margin-top:22px;">PRIVACY POLICY</div>
+              <dl class="privacy-list">
+                <dt>データの保存について</dt>
+                <dd>スポット情報・発見履歴・写真はすべてお使いの端末のブラウザ（ローカルストレージ）にのみ保存されます。外部サーバーへの送信は一切行いません。</dd>
+
+                <dt>共有端末でのご利用</dt>
+                <dd>家族や職場など複数人で使用する端末でご利用の場合、保存された写真やスポット情報が他の方に閲覧される可能性があります。特に写真データの取り扱いにご注意ください。</dd>
+
+                <dt>登録情報の保持期間</dt>
+                <dd>追加したスポット・写真・発見履歴はすべて端末内にのみ存在します。ブラウザのデータ消去またはアプリのアンインストールにより完全に削除されます。</dd>
+
+                <dt>写真撮影時のプライバシー</dt>
+                <dd>他の方が写り込む場所での撮影は、被写体となる方のプライバシーに十分ご配慮ください。公共の場での撮影においても、周囲への配慮をお願いします。</dd>
+              </dl>
+              <p class="privacy-ver">SPOT RADAR — ver. 1.0 / 2026</p>
             </div>
           </div>
 
@@ -395,30 +411,16 @@
           </div>
         </div>
 
-        <div class="admin-section privacy-section">
-          <h4>プライバシーポリシー</h4>
-          <div class="privacy-screen">
-            <dl class="privacy-list">
-              <dt>データの保存について</dt>
-              <dd>スポット情報・発見履歴・写真はすべてお使いの端末のブラウザ（ローカルストレージ）にのみ保存されます。外部サーバーへの送信は一切行いません。</dd>
-
-              <dt>共有端末でのご利用</dt>
-              <dd>家族や職場など複数人で使用する端末でご利用の場合、保存された写真やスポット情報が他の方に閲覧される可能性があります。特に写真データの取り扱いにご注意ください。</dd>
-
-              <dt>登録情報の保持期間</dt>
-              <dd>追加したスポット・写真・発見履歴はすべて端末内にのみ存在します。ブラウザのデータ消去またはアプリのアンインストールにより完全に削除されます。</dd>
-
-              <dt>写真撮影時のプライバシー</dt>
-              <dd>他の方が写り込む場所での撮影は、被写体となる方のプライバシーに十分ご配慮ください。公共の場での撮影においても、周囲への配慮をお願いします。</dd>
-            </dl>
-            <p class="privacy-ver">SPOT RADAR — ver. 1.0 / 2026</p>
-          </div>
-        </div>
       </div>
     </div>
 
   </div>
 
   <script src="js/app.js?v=20260624183503"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
 </body>
 </html>

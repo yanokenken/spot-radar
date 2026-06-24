@@ -67,6 +67,35 @@ html, body {
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
 }
 
+/* ===== Hardware texture & chrome ===== */
+
+/* プラスチック粒子テクスチャ */
+#app::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.13 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* エッジハイライト: 上・左に光、下・右に影 → 厚みのある筐体感 */
+#app::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow:
+    inset 0  2px 0 rgba(255, 255, 255, 0.52),
+    inset 2px 0  0 rgba(255, 255, 255, 0.28),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.38),
+    inset -2px 0 0 rgba(0, 0, 0, 0.22);
+}
+
 /* 全画面オーバーレイ類も同じ幅で中央寄せ
    (transformを使うと後勝ちのinset:0でズレるため margin auto で中央化) */
 #admin-panel,
@@ -753,7 +782,7 @@ html, body {
   flex-direction: column;
   justify-content: flex-start;
   gap: 3px;
-  min-height: 150px;
+  height: 161px;
   text-align: left;
   padding: 14px 16px 16px;
   background: linear-gradient(#151515, #090909);
@@ -776,7 +805,13 @@ html, body {
   letter-spacing: 1px;
   line-height: 1.7;
   white-space: pre-line;
-  min-height: 1.7em;
+  /* 余白をすべて取る。行が増えたとき上から押し出されるように: 下揃え＋上クリップ */
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 /* ガラスの艶 */
 .panel-screen::before {
@@ -797,6 +832,7 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   opacity: 0.85;
+  flex-shrink: 0;
 }
 
 .target-distance {
@@ -805,6 +841,7 @@ html, body {
   letter-spacing: 1px;
   line-height: 1.4;
   opacity: 0.75;
+  flex-shrink: 0;
 }
 
 /* 圏内アラート: 常に高さを確保し、表示時に点滅 */
@@ -816,6 +853,7 @@ html, body {
   color: #ff4848;
   margin-top: 3px;
   min-height: 1.4em;   /* 常に高さ確保 → レイアウトシフトなし */
+  flex-shrink: 0;
 }
 .panel-alert.show {
   animation: alert-blink 1.8s steps(1, end) infinite;
@@ -1688,7 +1726,7 @@ html, body {
 /* "RANGE" バッジ */
 .range-ctrl-badge {
   font-family: 'Silkscreen', monospace;
-  font-size: 6px;
+  font-size: 8px;
   letter-spacing: 2px;
   color: #333;
   flex-shrink: 0;
@@ -1731,16 +1769,6 @@ html, body {
 .theme-btn.theme-red.is-active   { border-color: #ff3232; color: #ff3232; }
 
 /* ===== プライバシーポリシー (黒スクリーン調) ===== */
-.privacy-section { border-bottom: none; }
-
-.privacy-screen {
-  padding: 14px 16px 16px;
-  background: linear-gradient(#151515, #090909);
-  border: 1px solid #000;
-  border-radius: 7px;
-  box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.85);
-}
-
 .privacy-list {
   display: flex;
   flex-direction: column;
