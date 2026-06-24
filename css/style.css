@@ -706,7 +706,7 @@ html, body {
   gap: 8px;
 }
 
-/* SHOT / LIST = アイコン上 + ラベル下の正方形寄りパッド */
+/* SHOT / LIST = アイコン + ラベル横並び */
 .ep-button.shot,
 .ep-button.list-btn {
   font-size: 13px;
@@ -714,14 +714,14 @@ html, body {
 .ep-button.shot .ep-inside,
 .ep-button.list-btn .ep-inside {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 0.5em 0.9em 0.45em;
+  gap: 5px;
+  padding: 0.5em 0.75em 0.45em;
 }
 .ep-button.shot .material-symbols-outlined,
-.ep-button.list-btn .material-symbols-outlined { font-size: 20px; }
+.ep-button.list-btn .material-symbols-outlined { font-size: 18px; }
 .shot-label,
 .list-label { letter-spacing: 0.1em; font-size: 10px; }
 
@@ -1332,6 +1332,81 @@ html, body {
 .admin-spot-actions .ep-button { flex-shrink: 0; font-size: 11px; }
 .admin-spot-actions .ep-inside { padding: 0.45em 0.7em 0.35em; }
 .admin-spot-delete .ep-inside { --text-color: #ff8a5c; }
+
+/* ===== テーマセレクター ===== */
+.theme-buttons {
+  display: flex;
+  gap: 8px;
+}
+.theme-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 6px;
+  background: #111;
+  border: 2px solid #2a2a2a;
+  border-radius: 6px;
+  font-family: 'Silkscreen', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.theme-btn.theme-green .theme-swatch { background: #00ff41; box-shadow: 0 0 4px #00ff41; }
+.theme-btn.theme-blue  .theme-swatch { background: #1a8cff; box-shadow: 0 0 4px #1a8cff; }
+.theme-btn.theme-red   .theme-swatch { background: #ff3232; box-shadow: 0 0 4px #ff3232; }
+.theme-btn.theme-green.is-active { border-color: #00ff41; color: #00ff41; }
+.theme-btn.theme-blue.is-active  { border-color: #1a8cff; color: #1a8cff; }
+.theme-btn.theme-red.is-active   { border-color: #ff3232; color: #ff3232; }
+
+/* ===== プライバシーポリシー (黒スクリーン調) ===== */
+.privacy-section { border-bottom: none; }
+
+.privacy-screen {
+  padding: 14px 16px 16px;
+  background: linear-gradient(#151515, #090909);
+  border: 1px solid #000;
+  border-radius: 7px;
+  box-shadow: inset 0 2px 7px rgba(0, 0, 0, 0.85);
+}
+
+.privacy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.privacy-list dt {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #f05a22;
+  margin-bottom: 4px;
+}
+.privacy-list dd {
+  font-size: 10px;
+  color: rgba(0, 255, 65, 0.75);
+  line-height: 1.7;
+  margin: 0;
+  padding-left: 8px;
+  border-left: 2px solid rgba(0, 255, 65, 0.2);
+}
+.privacy-ver {
+  margin-top: 16px;
+  text-align: right;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #444;
+}
 
 /* ===== Scrollbar (TEライト) ===== */
 ::-webkit-scrollbar { width: 10px; height: 10px; }

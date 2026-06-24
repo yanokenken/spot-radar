@@ -72,6 +72,7 @@ const Store = {
   K_FOUND:   'dr-found',
   K_PENDING: 'dr-pending',
   K_PHOTOS:  'dr-photos',
+  K_THEME:   'dr-theme',
 
   getFoundIds() {
     try { return new Set(JSON.parse(localStorage.getItem(this.K_FOUND) || '[]')); }
@@ -144,7 +145,58 @@ const Store = {
     return this.getPhotos()
       .filter(p => p.spotId === spotId)
       .sort((a, b) => b.ts - a.ts)[0]?.url ?? null;
-  }
+  },
+
+  getTheme() { return localStorage.getItem(this.K_THEME) || 'green'; },
+  setTheme(id) { localStorage.setItem(this.K_THEME, id); },
+};
+
+// ===================================================================
+//  RADAR THEMES
+// ===================================================================
+const RadarThemes = {
+  green: {
+    id: 'green',
+    bg: '#1f8a3b',
+    sweep: '0, 255, 65',
+    blipNormal: '0, 255, 65',
+    blipFound: '0, 140, 0',
+    blipFoundStar: 'rgba(0, 200, 0, 0.55)',
+    css: {
+      '--green':       '#00ff41',
+      '--green-mid':   '#00cc33',
+      '--green-dim':   '#004d15',
+      '--green-faint': 'rgba(0, 255, 65, 0.08)',
+    },
+  },
+  blue: {
+    id: 'blue',
+    bg: '#0e2a4a',
+    sweep: '20, 140, 255',
+    blipNormal: '20, 140, 255',
+    blipFound: '0, 80, 180',
+    blipFoundStar: 'rgba(0, 100, 220, 0.55)',
+    css: {
+      '--green':       '#1a8cff',
+      '--green-mid':   '#1070dd',
+      '--green-dim':   '#082040',
+      '--green-faint': 'rgba(20, 140, 255, 0.08)',
+    },
+  },
+  red: {
+    id: 'red',
+    bg: '#5c1010',
+    sweep: '255, 50, 50',
+    blipNormal: '255, 50, 50',
+    blipFound: '140, 0, 0',
+    blipFoundStar: 'rgba(180, 0, 0, 0.55)',
+    css: {
+      '--green':       '#ff3232',
+      '--green-mid':   '#cc2020',
+      '--green-dim':   '#4d0808',
+      '--green-faint': 'rgba(255, 50, 50, 0.08)',
+    },
+  },
 };
 
 // ===================================================================
@@ -323,6 +375,7 @@ class RadarRenderer {
     this._animId        = null;
     this._blipFlash     = new Map();  // spotId -> timestamp of last scan pass
     this._blipPositions = new Map();  // spotId -> {x, y} (canvas座標)
+    this.theme          = RadarThemes.green;
   }
 
   /** タップ座標に最も近いブリップのspot IDを返す */
@@ -380,8 +433,8 @@ class RadarRenderer {
 
     ctx.clearRect(0, 0, W, H);
 
-    // 背景(緑)
-    ctx.fillStyle = '#1f8a3b';
+    // 背景
+    ctx.fillStyle = this.theme.bg;
     ctx.fillRect(0, 0, W, H);
 
     // 格子グリッド(黒) — 中心を基準に正方形マスを長方形いっぱいに敷く
@@ -407,7 +460,7 @@ class RadarRenderer {
       const alpha  = 0.10 * (1 - frac);
       const startA = scanRad - trailArc * (i + 1) / trailSteps;
       const endA   = scanRad - trailArc * i / trailSteps;
-      ctx.fillStyle = `rgba(0, 255, 65, ${alpha})`;
+      ctx.fillStyle = `rgba(${this.theme.sweep}, ${alpha})`;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, sweepR, startA, endA);
@@ -416,7 +469,7 @@ class RadarRenderer {
     }
 
     // 走査線本体
-    ctx.strokeStyle = 'rgba(0, 255, 65, 0.85)';
+    ctx.strokeStyle = `rgba(${this.theme.sweep}, 0.85)`;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
@@ -467,13 +520,13 @@ class RadarRenderer {
         // 色・サイズ
         let color, size;
         if (isFound) {
-          color = `rgba(0, 140, 0, ${0.35 + flashAlpha * 0.4})`;
+          color = `rgba(${this.theme.blipFound}, ${0.35 + flashAlpha * 0.4})`;
           size  = 6;
         } else if (isClosest) {
           color = `rgba(255, 221, 0, ${0.75 + flashAlpha * 0.25})`;
           size  = 9;
         } else {
-          color = `rgba(0, 255, 65, ${0.55 + flashAlpha * 0.35})`;
+          color = `rgba(${this.theme.blipNormal}, ${0.55 + flashAlpha * 0.35})`;
           size  = 7;
         }
 
@@ -494,7 +547,7 @@ class RadarRenderer {
 
         // 発見済みは星マーク
         if (isFound) {
-          ctx.fillStyle = 'rgba(0, 200, 0, 0.55)';
+          ctx.fillStyle = this.theme.blipFoundStar;
           ctx.font = '9px sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -684,25 +737,43 @@ class CameraManager {
       ctx.stroke();
     });
 
-    // スポット名バナー (下・ダークバー + オレンジドット + 白文字)
+    // 下部バナー: スポット名(1行) or 座標(2行)
     if (this.spotName) {
-      const bH = Math.max(32, size * 0.09);
-      const cy = size - bH / 2;
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.fillRect(0, size - bH, size, bH);
+      const lines = this.spotName.split('\n');
+      const isCoord = lines.length > 1;
+      const fontSize = isCoord ? Math.min(14, r / 9) : Math.min(18, r / 7);
+      const lineH    = fontSize * 1.6;
+      const bH       = Math.max(isCoord ? 50 : 32, isCoord ? lineH * 2 + 12 : size * 0.09);
+      const bannerY  = size - bH;
 
-      ctx.font         = `${Math.min(18, r / 7)}px 'DotGothic16', sans-serif`;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(0, bannerY, size, bH);
+
+      ctx.font         = isCoord
+        ? `${fontSize}px 'Silkscreen', monospace`
+        : `${fontSize}px 'DotGothic16', sans-serif`;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
-      const tw = ctx.measureText(this.spotName).width;
-      // オレンジドット
-      ctx.fillStyle = ORANGE;
-      ctx.beginPath();
-      ctx.arc(c - tw / 2 - 12, cy, 4, 0, Math.PI * 2);
-      ctx.fill();
-      // 名前
-      ctx.fillStyle = '#fff';
-      ctx.fillText(this.spotName, c, cy);
+
+      if (!isCoord) {
+        // スポット名: オレンジドット + 白文字
+        const cy = size - bH / 2;
+        const tw = ctx.measureText(lines[0]).width;
+        ctx.fillStyle = ORANGE;
+        ctx.beginPath();
+        ctx.arc(c - tw / 2 - 12, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.fillText(lines[0], c, cy);
+      } else {
+        // 座標2行: 1行目=オレンジ(LAT), 2行目=薄グレー(LNG)
+        const totalH = lineH * lines.length;
+        const startY = size - bH / 2 - totalH / 2 + lineH / 2;
+        lines.forEach((line, i) => {
+          ctx.fillStyle = i === 0 ? ORANGE : 'rgba(255,255,255,0.65)';
+          ctx.fillText(line, c, startY + i * lineH);
+        });
+      }
     }
 
     // HUD: REC (左上) + SPOT-RADAR (中央) + 時刻 (右上)
@@ -981,6 +1052,7 @@ class App {
       closestId: this.spots.getClosest(this._getPosition())?.id ?? null,
       foundIds:  this.spots.foundIds,
     }));
+    this._applyTheme(Store.getTheme());
     this._refreshUI();
 
     if (ADMIN_MODE) this._openAdmin();
@@ -1315,8 +1387,10 @@ class App {
     document.getElementById('close-camera-btn').onclick = () => this.camera.close();
   }
 
-  /** 上限チェック(OK/Cancel)してからカメラを開く */
-  _openCameraFor(spot) {
+  /** 上限チェック(OK/Cancel)してからカメラを開く
+   *  forceName=true → 発見演出など、必ずスポット名を表示
+   *  forceName=false → 圏外なら座標を2行で表示 */
+  _openCameraFor(spot, forceName = false) {
     if (Store.isPhotoFull()) {
       const ok = confirm(
         `写真が上限（${Store.PHOTO_LIMIT}枚）に達しています。\n` +
@@ -1325,7 +1399,20 @@ class App {
       if (!ok) return;
     }
     this._cameraSpot = spot;
-    this.camera.open(spot?.name ?? '');
+
+    let label = spot?.name ?? '';
+    if (!forceName) {
+      const pos = this._getPosition();
+      if (pos) {
+        const inRange = spot
+          ? Geo.distance(pos.lat, pos.lng, spot.lat, spot.lng) <= Config.NORMAL_THRESHOLD
+          : false;
+        if (!inRange) {
+          label = `${pos.lat.toFixed(3)}\n${pos.lng.toFixed(3)}`;
+        }
+      }
+    }
+    this.camera.open(label);
   }
 
   // ----- 管理者パネル -----
@@ -1402,6 +1489,19 @@ class App {
     if (el) el.textContent = '';
   }
 
+  _applyTheme(id) {
+    const theme = RadarThemes[id] || RadarThemes.green;
+    const root = document.documentElement;
+    for (const [key, val] of Object.entries(theme.css)) {
+      root.style.setProperty(key, val);
+    }
+    this.radar.theme = theme;
+    Store.setTheme(id);
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.classList.toggle('is-active', btn.dataset.theme === id);
+    });
+  }
+
   _openAdmin() {
     if (!this.admin) this.admin = new AdminPanel(this.spots, this.gps);
     this.admin.open();
@@ -1451,9 +1551,9 @@ class App {
       else if (dx > 40) this._galTurn(-1);
     });
 
-    // 発見オーバーレイ: 撮影
+    // 発見オーバーレイ: 撮影 (発見直後 → スポット名を強制表示)
     document.getElementById('found-camera-btn').onclick = () => {
-      if (this._lastFoundSpot) this._openCameraFor(this._lastFoundSpot);
+      if (this._lastFoundSpot) this._openCameraFor(this._lastFoundSpot, true);
     };
 
     // 発見オーバーレイ: 次へ
@@ -1488,6 +1588,11 @@ class App {
       this._setMockPosition(lat, lng);
     };
     document.getElementById('clear-mock-pos-btn').onclick = () => this._clearMockPosition();
+
+    // テーマ切替
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.onclick = () => this._applyTheme(btn.dataset.theme);
+    });
 
     // 右上の歯車ボタンで設定(SETTINGS)を開く
     document.getElementById('settings-btn').onclick = () => this._openAdmin();
