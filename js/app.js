@@ -149,6 +149,10 @@ const Store = {
 
   getTheme() { return localStorage.getItem(this.K_THEME) || 'green'; },
   setTheme(id) { localStorage.setItem(this.K_THEME, id); },
+
+  K_RANGE: 'dr-range',
+  getRange() { return parseInt(localStorage.getItem(this.K_RANGE) ?? '3', 10); },
+  setRange(idx) { localStorage.setItem(this.K_RANGE, String(idx)); },
 };
 
 // ===================================================================
@@ -1053,6 +1057,8 @@ class App {
       foundIds:  this.spots.foundIds,
     }));
     this._applyTheme(Store.getTheme());
+    this._setupRangeCtrl();
+    this._setupModeButtons();
     this._refreshUI();
 
     if (ADMIN_MODE) this._openAdmin();
@@ -1087,6 +1093,7 @@ class App {
 
     this._checkProximity();
     this._refreshUI();
+    if (this._currentMode === 1) this._renderSpotList();
     if (DEBUG_MODE) this._updateDebug();
   }
 
@@ -1485,6 +1492,147 @@ class App {
     if (el) el.textContent = '';
   }
 
+  _setupModeButtons() {
+    const btns        = document.querySelectorAll('.mode-btn');
+    const listScreen   = document.getElementById('list-screen');
+    const clockScreen  = document.getElementById('clock-screen');
+    const gameScreen   = document.getElementById('game-screen');
+    const manualScreen = document.getElementById('manual-overlay');
+    this._currentMode  = 0;
+
+    const hideAll = () => {
+      listScreen.hidden   = true;
+      clockScreen.hidden  = true;
+      gameScreen.hidden   = true;
+      manualScreen.hidden = true;
+      if (this._clockInterval) { clearInterval(this._clockInterval); this._clockInterval = null; }
+    };
+
+    const showMode = (idx) => {
+      hideAll();
+      this._currentMode = idx;
+      if (idx === 1) {
+        this._renderSpotList();
+        listScreen.hidden = false;
+      } else if (idx === 2) {
+        this._updateClock();
+        clockScreen.hidden = false;
+        this._clockInterval = setInterval(() => this._updateClock(), 1000);
+      } else if (idx === 3) {
+        gameScreen.hidden = false;
+      } else if (idx === 4) {
+        manualScreen.hidden = false;
+      }
+    };
+
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        showMode(parseInt(btn.dataset.mode, 10));
+      });
+    });
+
+    // manual-overlay の × ボタン → レーダーに戻る
+    document.getElementById('manual-close').onclick = () => {
+      btns.forEach((b, i) => b.classList.toggle('is-active', i === 0));
+      showMode(0);
+    };
+  }
+
+  _renderSpotList() {
+    const container = document.getElementById('list-spots');
+    const scoreEl   = document.getElementById('list-score');
+    const pos       = this._getPosition();
+    container.innerHTML = '';
+    if (scoreEl) scoreEl.textContent = `${this.spots.found} / ${this.spots.total}`;
+
+    for (const spot of this.spots.allSpots) {
+      const isFound = this.spots.isFound(spot.id);
+      const item    = document.createElement('div');
+      item.className = 'list-spot-item' + (isFound ? ' is-found' : '');
+
+      const mark = document.createElement('span');
+      mark.className   = 'list-spot-mark';
+      mark.textContent = isFound ? '★' : '○';
+
+      const name = document.createElement('span');
+      name.className   = 'list-spot-name';
+      name.textContent = spot.name;
+
+      item.append(mark, name);
+
+      if (pos) {
+        const dist   = Geo.distance(pos.lat, pos.lng, spot.lat, spot.lng);
+        const distEl = document.createElement('span');
+        distEl.className   = 'list-spot-dist';
+        distEl.textContent = Geo.formatDistance(dist);
+        item.append(distEl);
+      }
+      container.appendChild(item);
+    }
+  }
+
+  _updateClock() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const hm  = document.getElementById('clock-hm');
+    const sec = document.getElementById('clock-sec');
+    const dt  = document.getElementById('clock-date');
+    if (hm)  hm.textContent  = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    if (sec) sec.textContent = pad(now.getSeconds());
+    if (dt)  dt.textContent  = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())}`;
+  }
+
+  _setupRangeCtrl() {
+    const STEPS  = [50000, 3000, 1000, 500, 200, 100];  // index 0=top(遠), 5=bottom(近)
+    const MAX_IDX = STEPS.length - 1;
+    const groove = document.getElementById('range-groove');
+    const thumb  = document.getElementById('range-thumb');
+    const labels = document.querySelectorAll('.range-step-label');
+
+    let currentIdx = Math.max(0, Math.min(MAX_IDX, Store.getRange()));
+
+    const applyStep = (idx) => {
+      currentIdx = Math.max(0, Math.min(MAX_IDX, idx));
+      Config.MAX_DISPLAY_DISTANCE = STEPS[currentIdx];
+      Store.setRange(currentIdx);
+
+      const grooveH = groove.clientHeight;
+      const thumbH  = thumb.offsetHeight;
+      thumb.style.top = (currentIdx / MAX_IDX * (grooveH - thumbH)) + 'px';
+
+      labels.forEach((el, i) => el.classList.toggle('is-active', i === currentIdx));
+    };
+
+    const stepFromY = (clientY) => {
+      const rect = groove.getBoundingClientRect();
+      const frac = (clientY - rect.top) / rect.height;
+      return Math.round(Math.max(0, Math.min(1, frac)) * MAX_IDX);
+    };
+
+    groove.addEventListener('click', e => applyStep(stepFromY(e.clientY)));
+
+    let dragging = false;
+    groove.addEventListener('touchstart', () => { dragging = true; }, { passive: true });
+    groove.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      e.preventDefault();
+      applyStep(stepFromY(e.touches[0].clientY));
+    }, { passive: false });
+    groove.addEventListener('touchend', () => { dragging = false; }, { passive: true });
+
+    labels.forEach((el) => {
+      el.addEventListener('click', () => applyStep(parseInt(el.dataset.idx, 10)));
+    });
+
+    // リサイズ時の再計算用に保持
+    this._rangeApply = () => applyStep(currentIdx);
+
+    // レイアウト確定後に初期位置をセット
+    requestAnimationFrame(() => requestAnimationFrame(() => applyStep(currentIdx)));
+  }
+
   _applyTheme(id) {
     const theme = RadarThemes[id] || RadarThemes.green;
     const root = document.documentElement;
@@ -1585,11 +1733,6 @@ class App {
     };
     document.getElementById('clear-mock-pos-btn').onclick = () => this._clearMockPosition();
 
-    // 遊び方
-    const manualOverlay = document.getElementById('manual-overlay');
-    document.getElementById('manual-btn').onclick   = () => { manualOverlay.hidden = false; };
-    document.getElementById('manual-close').onclick = () => { manualOverlay.hidden = true; };
-
     // テーマ切替
     document.querySelectorAll('.theme-btn').forEach(btn => {
       btn.onclick = () => this._applyTheme(btn.dataset.theme);
@@ -1599,7 +1742,12 @@ class App {
     document.getElementById('settings-btn').onclick = () => this._openAdmin();
 
     // リサイズ
-    window.addEventListener('resize', () => { this.radar.resize(); this._refreshUI(); });
+    window.addEventListener('resize', () => {
+      this.radar.resize();
+      this._refreshUI();
+      // フェーダーのサム位置を再計算
+      if (this._rangeApply) this._rangeApply();
+    });
   }
 }
 

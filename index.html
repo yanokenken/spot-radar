@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=1">
 </head>
 <body>
   <div id="app">
@@ -90,7 +90,6 @@
     <header class="header">
       <div class="app-title" id="logo">SPOT RADAR</div>
       <div class="header-controls">
-        <button id="manual-btn" class="manual-btn" type="button" aria-label="遊び方">?</button>
         <button id="settings-btn" class="settings-toggle" type="button" aria-label="settings">
           <span class="toggle-inner">
             <span class="toggle-side on"><span class="material-symbols-outlined">radar</span></span>
@@ -106,9 +105,35 @@
     </header>
 
     <main class="main-content">
+      <div class="radar-row">
       <div id="radar-wrapper">
         <div class="radar-frame">
           <canvas id="radar-canvas"></canvas>
+
+          <!-- スポットリスト画面 -->
+          <div id="list-screen" class="radar-screen" hidden>
+            <div class="screen-header">
+              <span class="screen-title">SPOTS</span>
+              <span id="list-score" class="screen-score"></span>
+            </div>
+            <div id="list-spots" class="spot-list"></div>
+          </div>
+
+          <!-- 時計画面 -->
+          <div id="clock-screen" class="radar-screen" hidden>
+            <div class="clock-wrap">
+              <div id="clock-hm" class="clock-hm">--:--</div>
+              <div id="clock-sec" class="clock-sec">--</div>
+              <div id="clock-date" class="clock-date">----.--.--</div>
+            </div>
+          </div>
+
+          <!-- ミニゲーム画面 -->
+          <div id="game-screen" class="radar-screen" hidden>
+            <div class="coming-soon-wrap">
+              <p class="coming-soon-text">COMING SOON...</p>
+            </div>
+          </div>
 
           <!-- 遊び方オーバーレイ -->
           <div id="manual-overlay" class="manual-overlay" hidden>
@@ -168,6 +193,58 @@
           </div>
         </div>
       </div>
+
+      <!-- 距離レンジ フェーダー -->
+      <div class="range-ctrl" id="radar-range-ctrl">
+        <div class="range-body">
+          <div class="range-groove-wrap">
+            <div class="range-groove" id="range-groove">
+              <div class="range-thumb" id="range-thumb"></div>
+            </div>
+          </div>
+          <div class="range-labels">
+            <span class="range-step-label" data-idx="0">50K</span>
+            <span class="range-step-label" data-idx="1">3K</span>
+            <span class="range-step-label" data-idx="2">1K</span>
+            <span class="range-step-label" data-idx="3">500</span>
+            <span class="range-step-label" data-idx="4">200</span>
+            <span class="range-step-label" data-idx="5">100</span>
+          </div>
+        </div>
+        <span class="range-ctrl-badge">RANGE</span>
+      </div>
+
+      </div><!-- /.radar-row -->
+
+      <!-- モードバー: 隙間に絶対配置 (カセットテープ式ラジオセレクト) -->
+      <div class="mode-bar" id="mode-buttons">
+        <button class="mode-btn ep-button is-active" data-mode="0" type="button">
+          <span class="ep-inside mode-inside">
+            <span class="material-symbols-outlined">radar</span>
+          </span>
+        </button>
+        <button class="mode-btn ep-button" data-mode="1" type="button">
+          <span class="ep-inside bg-color mode-inside">
+            <span class="material-symbols-outlined">format_list_bulleted</span>
+          </span>
+        </button>
+        <button class="mode-btn ep-button" data-mode="2" type="button">
+          <span class="ep-inside bg-color mode-inside">
+            <span class="material-symbols-outlined">schedule</span>
+          </span>
+        </button>
+        <button class="mode-btn ep-button" data-mode="3" type="button">
+          <span class="ep-inside bg-color mode-inside">
+            <span class="material-symbols-outlined">sports_esports</span>
+          </span>
+        </button>
+        <button class="mode-btn ep-button" data-mode="4" type="button">
+          <span class="ep-inside bg-color mode-inside">
+            <span class="material-symbols-outlined">menu_book</span>
+          </span>
+        </button>
+      </div>
+
     </main>
 
     <!-- レーダー真下のINFOパネル(画面幅いっぱい) -->
@@ -345,6 +422,6 @@
 
   </div>
 
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=1"></script>
 </body>
 </html>
