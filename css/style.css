@@ -116,20 +116,47 @@ html, body {
   background: #f05a22;
 }
 
-/* 右上の歯車(SETTINGS)ボタン = 背景と同色のEP-133パッド */
-.settings-btn { font-size: 12px; }
-.settings-btn .ep-inside {
-  --background-color:        #c6c6c6;   /* 背景と同色 */
-  --background-color-active:  #bcbcbc;
-  --light-shadow-color:       #ececec;
-  --dark-shadow-color:        #8d8d8d;
-  --text-color:               #1a1a1a;
+/* レーダー ↔ SETTINGS トグルスイッチ */
+.settings-toggle {
+  border: 0.185em solid transparent;
+  border-radius: 2em;
+  background-color: #010101;
+  box-shadow: 0.0625em 0.0625em 0.0625em rgba(255, 255, 255, 0.6);
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+.toggle-inner {
+  display: flex;
+  border-radius: 1.7em;
+  padding: 3px;
+  gap: 3px;
+  background: #1c1c1c;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.75),
+    0.125em 0.125em 0.25em #000;
+}
+.toggle-side {
+  border-radius: 1.4em;
+  padding: 5px 7px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  transition: background-color 0.2s, color 0.2s;
 }
-.settings-btn .material-symbols-outlined { font-size: 21px; }
+.toggle-side .material-symbols-outlined { font-size: 18px; line-height: 1; }
+.toggle-side.on {
+  background: #f05a22;
+  color: #fff;
+  box-shadow:
+    inset 0.0625em 0.0625em 0.0625em rgba(255, 180, 71, 0.5),
+    inset -0.0625em -0.0625em 0.0625em rgba(215, 45, 18, 0.5);
+}
+.toggle-side.off {
+  background: transparent;
+  color: #555;
+}
 
 /* GPS精度・発見数はレーダーHUDに表示するためヘッダーでは隠す */
 .header-right {
@@ -158,20 +185,22 @@ html, body {
 
 /* ===== Main (レーダーのみ・上寄せ) ===== */
 .main-content {
-  flex: 1 1 0;        /* 余った高さを吸収し、足りなければ縮む */
-  min-height: 170px;  /* レーダー最小160pxを収める下限 */
+  flex: 1 1 0;            /* 余った高さを吸収し、足りなければ縮む */
+  min-height: 170px;      /* レーダー最小160pxを収める下限 */
+  container-type: size;   /* cqw/cqh でレーダーサイズを決定するため */
   display: flex;
   flex-direction: column;
+  align-items: center;
   padding: 8px 12px 6px;
   overflow: hidden;
 }
 
 /* ===== Radar (正方形スクリーン) ===== */
 #radar-wrapper {
-  position: relative;
-  width: 100%;
+  /* コンテナの幅・高さ・vh上限のうち最小値で正方形を作る
+     → 縦が足りない実機でも下端が削れない */
+  width: min(100cqw, 100cqh, 46dvh);
   aspect-ratio: 1 / 1;
-  max-height: 46vh;          /* 縦長すぎないよう上限 → 下に余白を残す */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,12 +368,13 @@ html, body {
   position: absolute;
   top: 6px; right: 8px;
   z-index: 7;
-  width: 24px; height: 24px;
+  width: 32px; height: 32px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid #555;
+  background: #f05a22;
+  border: 2px solid #fff;
   color: #fff;
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: bold;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -396,6 +426,23 @@ html, body {
   border-color: #f05a22;
 }
 .gallery-save .material-symbols-outlined { font-size: 16px; }
+.gallery-delete {
+  position: absolute;
+  top: 44px; right: 8px;   /* 保存ボタンの直下 */
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid #ff4848;
+  border-radius: 4px;
+  color: #ff4848;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+.gallery-delete .material-symbols-outlined { font-size: 16px; }
 
 #radar-canvas {
   display: block;
@@ -510,27 +557,24 @@ html, body {
 }
 
 .target-distance {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 11px;
   color: var(--green);
-  text-shadow: 0 0 4px rgba(0, 255, 65, 0.1);
   letter-spacing: 1px;
-  line-height: 1.2;
-  min-height: 26px;
+  line-height: 1.4;
+  opacity: 0.75;
 }
 
-/* 圏内カウントダウンの赤い点滅アラート */
+/* 圏内アラート: 常に高さを確保し、表示時に点滅 */
 .panel-alert {
   font-size: 13px;
   font-weight: bold;
   letter-spacing: 1px;
   line-height: 1.4;
   color: #ff4848;
-  min-height: 0;
+  margin-top: 3px;
+  min-height: 1.4em;   /* 常に高さ確保 → レイアウトシフトなし */
 }
 .panel-alert.show {
-  margin-top: 3px;
-  min-height: 1.4em;
   animation: alert-blink 1.8s steps(1, end) infinite;
 }
 @keyframes alert-blink {
@@ -1060,7 +1104,9 @@ html, body {
   z-index: 150;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;        /* Firefox */
 }
+#admin-panel::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 #admin-panel[hidden] { display: none; }
 
 /* ヘッダー: ライト筐体のバー */

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="ドラゴンレーダー">
+  <meta name="apple-mobile-web-app-title" content="spot radar">
   <meta name="theme-color" content="#001400">
   <title>ドラゴンレーダー</title>
   <link rel="manifest" href="manifest.json">
@@ -89,9 +89,10 @@
     <!-- メインUI -->
     <header class="header">
       <div class="app-title" id="logo">SPOT RADAR</div>
-      <button id="settings-btn" class="ep-button settings-btn" type="button" aria-label="settings">
-        <span class="ep-inside">
-          <span class="material-symbols-outlined">settings</span>
+      <button id="settings-btn" class="settings-toggle" type="button" aria-label="settings">
+        <span class="toggle-inner">
+          <span class="toggle-side on"><span class="material-symbols-outlined">radar</span></span>
+          <span class="toggle-side off"><span class="material-symbols-outlined">settings</span></span>
         </span>
       </button>
       <!-- GPS精度・発見数はレーダーHUDに描画。要素はJS用に保持 -->
@@ -121,6 +122,9 @@
               <button id="gallery-back" class="gallery-back" type="button">← 一覧に戻る</button>
               <button id="gallery-save" class="gallery-save" type="button">
                 <span class="material-symbols-outlined">save_alt</span>保存
+              </button>
+              <button id="gallery-delete" class="gallery-delete" type="button">
+                <span class="material-symbols-outlined">delete</span>削除
               </button>
             </div>
           </div>
@@ -213,7 +217,12 @@
     <div id="admin-panel" hidden>
       <div class="admin-header">
         <h3>SETTINGS</h3>
-        <button id="close-admin-btn" class="ep-button" type="button"><span class="ep-inside dark-gray">閉じる</span></button>
+        <button id="close-admin-btn" class="settings-toggle" type="button" aria-label="レーダーに戻る">
+          <span class="toggle-inner">
+            <span class="toggle-side off"><span class="material-symbols-outlined">radar</span></span>
+            <span class="toggle-side on"><span class="material-symbols-outlined">settings</span></span>
+          </span>
+        </button>
       </div>
       <div class="admin-body">
         <div class="admin-section">

@@ -1120,7 +1120,7 @@ class App {
     document.getElementById('arrived-btn').disabled        = false;
 
     if (inNormal) {
-      this._setAlert('目的地到着！ 記念写真を撮ろう');
+      this._setAlert('目的地到着！ 「I\'M HERE!」ボタンを押して記念写真を撮ろう');
     } else {
       this._setAlert('');
     }
@@ -1213,6 +1213,23 @@ class App {
   }
 
   _unzoom() { document.getElementById('gallery-zoom').hidden = true; }
+
+  _deleteCurrentPhoto() {
+    const p = this._galPhotos[this._galZoomIdx];
+    if (!p) return;
+    if (!confirm(`「${p.name}」の写真を削除しますか?`)) return;
+    Store.deletePhoto(p.id);
+    this._galPhotos = this._collectPhotos();
+    if (this._galPhotos.length === 0) {
+      this._unzoom();
+      this._renderGallery();
+      return;
+    }
+    this._galZoomIdx = Math.min(this._galZoomIdx, this._galPhotos.length - 1);
+    this._galPage = Math.floor(this._galZoomIdx / 4);
+    this._zoomPhoto(this._galZoomIdx);
+    this._renderGallery();
+  }
 
   /** 拡大中の写真を保存
    *  1. PC Chrome/Edge: showSaveFilePicker (保存ダイアログ)
@@ -1419,8 +1436,9 @@ class App {
     // 写真ギャラリー
     document.getElementById('gallery-btn').onclick   = () => this._openGallery();
     document.getElementById('gallery-close').onclick = () => this._closeGallery();
-    document.getElementById('gallery-back').onclick  = () => this._unzoom();
-    document.getElementById('gallery-save').onclick  = () => this._saveCurrentPhoto();
+    document.getElementById('gallery-back').onclick   = () => this._unzoom();
+    document.getElementById('gallery-save').onclick   = () => this._saveCurrentPhoto();
+    document.getElementById('gallery-delete').onclick = () => this._deleteCurrentPhoto();
     document.querySelector('.pg-prev').onclick       = () => this._galTurn(-1);
     document.querySelector('.pg-next').onclick       = () => this._galTurn(1);
     // グリッドのスワイプで前後ページ
