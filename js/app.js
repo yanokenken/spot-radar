@@ -1115,7 +1115,6 @@ class App {
 
     const dist      = Geo.distance(pos.lat, pos.lng, closest.lat, closest.lng);
     const inNormal  = dist <= Config.NORMAL_THRESHOLD;
-    const inRelaxed = dist <= Config.RELAXED_THRESHOLD;
 
     document.getElementById('target-distance').textContent = `└キョリ：${Geo.formatDistance(dist)}`;
     document.getElementById('arrived-btn').disabled        = false;

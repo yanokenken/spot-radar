@@ -158,12 +158,12 @@ html, body {
 
 /* ===== Main (レーダーのみ・上寄せ) ===== */
 .main-content {
-  flex: 0 0 auto;
+  flex: 1 1 0;        /* 余った高さを吸収し、足りなければ縮む */
+  min-height: 170px;  /* レーダー最小160pxを収める下限 */
   display: flex;
   flex-direction: column;
   padding: 8px 12px 6px;
   overflow: hidden;
-  min-height: 0;
 }
 
 /* ===== Radar (正方形スクリーン) ===== */
@@ -179,12 +179,12 @@ html, body {
 
 /* 下部の余白エリア (警告ステッカー置き場) */
 .device-base {
-  flex: 1 1 auto;
+  flex: 0 0 auto;     /* 固定: 縮まない */
+  min-height: 74px;   /* ステッカーを必ず収める高さ */
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding: 6px 12px;
-  min-height: 0;
 }
 
 /* ISO風 警告ステッカー (3ペイン: ピクトグラム | WARNING帯 / 本文) */
@@ -695,13 +695,6 @@ html, body {
   font-feature-settings: 'liga';
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
-}
-
-.arrived-hint {
-  font-size: 11px;
-  color: var(--ink-dim);
-  min-height: 16px;
-  text-align: center;
 }
 
 #action-buttons {
