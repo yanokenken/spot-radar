@@ -46,6 +46,28 @@ const Geo = {
     return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
   },
 
+  /**
+   * deviceorientation の alpha/beta/gamma からチルト補正済みコンパス方位を算出。
+   * 端末トップが指す方位 (0=北, 時計回り) を返す。
+   * 端末を立てて持っても正しい方位になる (生 alpha は水平時のみ正しい)。
+   * 水平時は (360 - alpha) に一致し、atan2 で 0/0 特異点も安全に処理する。
+   */
+  compassHeading(alpha, beta, gamma) {
+    const rad = Math.PI / 180;
+    const _x = (beta  || 0) * rad;  // X軸 (前後の傾き)
+    const _y = (gamma || 0) * rad;  // Y軸 (左右の傾き)
+    const _z = (alpha || 0) * rad;  // Z軸 (方位)
+
+    const cX = Math.cos(_x), cY = Math.cos(_y), cZ = Math.cos(_z);
+    const sX = Math.sin(_x), sY = Math.sin(_y), sZ = Math.sin(_z);
+
+    // 端末トップ軸を水平面へ投影した方向ベクトル
+    const Vx = -cZ * sY - sZ * sX * cY;
+    const Vy = -sZ * sY + cZ * sX * cY;
+
+    return (Math.atan2(Vx, Vy) * 180 / Math.PI + 360) % 360;
+  },
+
   /** 角度の線形補間 (360度ラップ対応) */
   lerpAngle(from, to, t) {
     const diff = ((to - from + 540) % 360) - 180;
@@ -272,7 +294,7 @@ class CompassTracker {
   /** 許可不要な端末(Android等)では自動起動を試みる */
   tryAutoStart() {
     if (!this.needsPermission && 'DeviceOrientationEvent' in window) {
-      window.addEventListener('deviceorientation', this._handler, true);
+      this._addListeners();
       this.active = true;
       return true;
     }
@@ -288,9 +310,16 @@ class CompassTracker {
         if (r !== 'granted') return false;
       } catch { return false; }
     }
-    window.addEventListener('deviceorientation', this._handler, true);
+    this._addListeners();
     this.active = true;
     return true;
+  }
+
+  _addListeners() {
+    // deviceorientationabsolute を優先 (磁北基準でドリフトなし)
+    // absolute イベントを受信したら relative は無視する
+    window.addEventListener('deviceorientationabsolute', this._handler, true);
+    window.addEventListener('deviceorientation', this._handler, true);
   }
 
   _onOrientation(evt) {
@@ -299,8 +328,11 @@ class CompassTracker {
       // iOS: webkitCompassHeading は北=0, 時計回り (そのまま使える)
       heading = evt.webkitCompassHeading;
     } else if (evt.alpha != null) {
-      // Android: alpha は反時計回りなので変換
-      heading = (360 - evt.alpha + 360) % 360;
+      // Android: absolute イベント優先。非 absolute は absolute 未受信時のみ使う
+      if (!evt.absolute && this._hasAbsolute) return;
+      if (evt.absolute) this._hasAbsolute = true;
+      // チルト補正済み方位 (端末を立てて持ってもズレない)
+      heading = Geo.compassHeading(evt.alpha, evt.beta, evt.gamma);
     } else {
       return;
     }
@@ -310,7 +342,10 @@ class CompassTracker {
     this.onUpdate?.(this.smoothedHeading);
   }
 
-  stop() { window.removeEventListener('deviceorientation', this._handler, true); }
+  stop() {
+    window.removeEventListener('deviceorientationabsolute', this._handler, true);
+    window.removeEventListener('deviceorientation', this._handler, true);
+  }
 }
 
 // ===================================================================
