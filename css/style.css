@@ -1474,6 +1474,7 @@ html, body {
   margin-bottom: 6px;
 }
 .field-label-row .field-label { margin-bottom: 0; }
+.coord-label-actions { display: flex; align-items: baseline; gap: 10px; }
 
 /* 凹んだライトな入力欄 (オレンジフォーカス) */
 .admin-input {
@@ -1519,6 +1520,7 @@ html, body {
   text-transform: uppercase;
   cursor: pointer;
   padding: 0;
+  text-decoration: none;
 }
 
 .coord-row {
