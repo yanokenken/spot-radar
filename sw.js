@@ -1,9 +1,23 @@
-const CACHE = 'spot-radar-v1';
+const CACHE = 'spot-radar-v2';
 
-// インストール: 即座にアクティブ化
-self.addEventListener('install', () => self.skipWaiting());
+const PRECACHE = [
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+];
 
-// アクティブ化: 古いキャッシュを削除
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => Promise.allSettled(PRECACHE.map(url => c.add(url))))
+      .then(() => self.skipWaiting())
+  );
+});
+
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
@@ -12,8 +26,6 @@ self.addEventListener('activate', e => {
   );
 });
 
-// フェッチ: ネットワーク優先 → キャッシュフォールバック
-// Google Fonts など外部リソースはキャッシュしない
 self.addEventListener('fetch', e => {
   if (!e.request.url.startsWith(self.location.origin)) return;
   if (e.request.method !== 'GET') return;
@@ -25,6 +37,6 @@ self.addEventListener('fetch', e => {
         caches.open(CACHE).then(c => c.put(e.request, clone));
         return res;
       })
-      .catch(() => caches.match(e.request))
+      .catch(() => caches.match(e.request).then(r => r || Response.error()))
   );
 });
