@@ -1258,10 +1258,7 @@ class App {
       cell.className = 'gallery-thumb';
       const img  = document.createElement('img');
       img.src    = p.url;
-      const cap  = document.createElement('span');
-      cap.className   = 'cap';
-      cap.textContent = p.name;
-      cell.append(img, cap);
+      cell.append(img);
       cell.onclick = () => this._zoomPhoto(idx);
       grid.appendChild(cell);
     });
@@ -1279,9 +1276,8 @@ class App {
     const p = this._galPhotos[idx];
     if (!p) return;
     this._galZoomIdx = idx;
-    document.getElementById('gallery-zoom-img').src         = p.url;
-    document.getElementById('gallery-zoom-cap').textContent = p.name;
-    document.getElementById('gallery-zoom').hidden          = false;
+    document.getElementById('gallery-zoom-img').src = p.url;
+    document.getElementById('gallery-zoom').hidden  = false;
   }
 
   _unzoom() { document.getElementById('gallery-zoom').hidden = true; }
@@ -1588,6 +1584,11 @@ class App {
       this._setMockPosition(lat, lng);
     };
     document.getElementById('clear-mock-pos-btn').onclick = () => this._clearMockPosition();
+
+    // 遊び方
+    const manualOverlay = document.getElementById('manual-overlay');
+    document.getElementById('manual-btn').onclick   = () => { manualOverlay.hidden = false; };
+    document.getElementById('manual-close').onclick = () => { manualOverlay.hidden = true; };
 
     // テーマ切替
     document.querySelectorAll('.theme-btn').forEach(btn => {

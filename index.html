@@ -66,7 +66,7 @@
       <div class="overlay-content">
         <div class="overlay-icon complete-icon">🐉</div>
         <h2>全スポット制覇！</h2>
-        <p>すべてのガチャガチャを見つけたよ！<br>ドラゴンを召喚できるかも？</p>
+        <p>すべてのスポットを見つけたよ！<br>ドラゴンを召喚できるかも？</p>
         <button id="reset-btn" class="ep-button" type="button" style="width:100%">
           <span class="ep-inside dark-gray">もう一度あそぶ</span>
         </button>
@@ -89,12 +89,15 @@
     <!-- メインUI -->
     <header class="header">
       <div class="app-title" id="logo">SPOT RADAR</div>
-      <button id="settings-btn" class="settings-toggle" type="button" aria-label="settings">
-        <span class="toggle-inner">
-          <span class="toggle-side on"><span class="material-symbols-outlined">radar</span></span>
-          <span class="toggle-side off"><span class="material-symbols-outlined">settings</span></span>
-        </span>
-      </button>
+      <div class="header-controls">
+        <button id="manual-btn" class="manual-btn" type="button" aria-label="遊び方">?</button>
+        <button id="settings-btn" class="settings-toggle" type="button" aria-label="settings">
+          <span class="toggle-inner">
+            <span class="toggle-side on"><span class="material-symbols-outlined">radar</span></span>
+            <span class="toggle-side off"><span class="material-symbols-outlined">settings</span></span>
+          </span>
+        </button>
+      </div>
       <!-- GPS精度・発見数はレーダーHUDに描画。要素はJS用に保持 -->
       <div class="header-right" hidden>
         <div id="gps-status" class="gps-status"></div>
@@ -106,6 +109,41 @@
       <div id="radar-wrapper">
         <div class="radar-frame">
           <canvas id="radar-canvas"></canvas>
+
+          <!-- 遊び方オーバーレイ -->
+          <div id="manual-overlay" class="manual-overlay" hidden>
+            <button id="manual-close" class="manual-close" aria-label="閉じる">✕</button>
+            <div class="manual-content">
+              <div class="manual-title">HOW TO PLAY</div>
+              <ol class="manual-steps">
+                <li>
+                  <span class="manual-step-num">01</span>
+                  <span class="manual-step-text">設定<span class="manual-icon-inline">（歯車）</span>からスポットの座標を登録しよう</span>
+                </li>
+                <li>
+                  <span class="manual-step-num">02</span>
+                  <span class="manual-step-text">レーダーを見ながらスポットの方向へ移動しよう。ブリップが中心に近づいてきたら正解</span>
+                </li>
+                <li>
+                  <span class="manual-step-num">03</span>
+                  <span class="manual-step-text">そこに着いたら <span class="manual-highlight">I'M HERE!</span> ボタンを押して発見登録。SHOTで記念写真も撮れるよ</span>
+                </li>
+                <li>
+                  <span class="manual-step-num">04</span>
+                  <span class="manual-step-text">全スポットを踏破するとエンディング。<span class="manual-dim">（しょぼいです）</span></span>
+                </li>
+                <li>
+                  <span class="manual-step-num">05</span>
+                  <span class="manual-step-text">最初から入っているスポットは設定から削除できます。<span class="manual-dim">（サンプルなので消してOK）</span></span>
+                </li>
+                <li>
+                  <span class="manual-step-num">06</span>
+                  <span class="manual-step-text">スポット以外の場所でも <span class="manual-highlight">SHOT</span> で写真を撮れます。撮った写真は <span class="manual-highlight">LIST</span> からいつでも確認できますよ</span>
+                </li>
+              </ol>
+              <p class="manual-footer">SPOT RADAR — ver. 1.0</p>
+            </div>
+          </div>
 
           <!-- 写真ギャラリー (レーダー枠内に表示) -->
           <div id="gallery-overlay" class="gallery-overlay" hidden>
