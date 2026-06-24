@@ -1474,7 +1474,9 @@ html, body {
   margin-bottom: 6px;
 }
 .field-label-row .field-label { margin-bottom: 0; }
-.coord-label-actions { display: flex; align-items: baseline; gap: 10px; }
+.coord-label-actions { display: flex; align-items: center; gap: 10px; }
+.btn-text-icon { display: inline-flex; align-items: center; gap: 2px; }
+.btn-text-icon .material-symbols-outlined { font-size: 11px; }
 
 /* 凹んだライトな入力欄 (オレンジフォーカス) */
 .admin-input {
