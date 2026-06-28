@@ -491,6 +491,7 @@ html, body {
 
 /* --- ミニゲーム --- */
 /* ── Dragon Game ─────────────────────────── */
+#game-screen [hidden] { display: none !important; }
 .gm-arena {
   flex: 1;
   min-height: 0;
