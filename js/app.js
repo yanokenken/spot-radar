@@ -1544,6 +1544,7 @@ class App {
       gameScreen.hidden    = true;
       manualScreen.hidden  = true;
       if (this._clockInterval) { clearInterval(this._clockInterval); this._clockInterval = null; }
+      window._dragonGame?.stop();
     };
 
     const showMode = (idx) => {
@@ -1564,6 +1565,12 @@ class App {
         this._renderGallery();
       } else if (idx === 4) {
         gameScreen.hidden = false;
+        window._dragonGame.attach(
+          gameScreen,
+          () => this.spots.allSpots,
+          () => this._getPosition()
+        );
+        window._dragonGame.start();
       } else if (idx === 5) {
         manualScreen.hidden = false;
       }
