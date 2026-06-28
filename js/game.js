@@ -421,7 +421,7 @@ class DragonGame {
     return lv;
   }
 
-  /* ── Dino runner ────────────────────────────────────────────── */
+  /* ── タイミングジャンプゲーム ───────────────────────────────── */
   _startDino() {
     this._mode = 'play';
     this._stopLoop();
@@ -432,16 +432,23 @@ class DragonGame {
 
     const cw = this._canvas.width, ch = this._canvas.height;
     const px = Math.max(2, Math.floor(this._px * 0.65));
-    const gY = ch - 14;
+    const gY = ch - 16;
+    // 判定ライン: ドラゴンの右端から少し前
+    const hitX = 10 + DRG_W * px + 12;
 
     this._dino = {
       alive: true,
-      y: gY - DRG_H * px, vy: 0, onG: true,
-      obs: [], score: 0, speed: 2,
-      nextObs: 70, frame: 0, ft: 0,
-      gY, px, cw, ch,
+      lives: 3, score: 0,
+      speed: 2.2,
+      obs: [],          // { x, hitTime, h, state:'incoming'|'hit'|'miss' }
+      hitX,
+      nextObs: 90,
+      jumping: false, jumpT: 0, jumpH: DRG_H * px * 1.1,
+      grade: null, gradeT: 0, gradeCol: '#00ff41',
+      frame: 0, ft: 0,
+      px, gY, cw, ch,
     };
-    this._msg('タップでジャンプ！');
+    this._msg('障害物が来たらタップ！');
 
     let last = 0;
     const loop = t => {
@@ -455,70 +462,149 @@ class DragonGame {
   }
 
   _dinoJump() {
-    if (this._dino?.onG) { this._dino.vy = -7; this._dino.onG = false; }
+    const d = this._dino;
+    if (!d?.alive || d.jumping) return;
+
+    const now = Date.now();
+    const obs = d.obs.find(o => o.state === 'incoming');
+    if (!obs) return;
+
+    const diff = now - obs.hitTime;   // 負=早い、正=遅い
+    const abs  = Math.abs(diff);
+
+    if (abs <= 500) {
+      // 成功
+      obs.state   = 'hit';
+      d.jumping   = true;
+      d.jumpT     = 0;
+      d.score++;
+      if (d.score % 5 === 0) d.speed = Math.min(4.5, d.speed + 0.25);
+      if      (abs < 150) { d.grade = 'PERFECT!'; d.gradeCol = '#f5c518'; }
+      else if (abs < 320) { d.grade = 'GOOD';     d.gradeCol = '#3ea83e'; }
+      else                { d.grade = 'OK';        d.gradeCol = '#90ee90'; }
+    } else if (diff < -500) {
+      // 早すぎ（ペナルティなし）
+      d.grade = 'はやい！'; d.gradeCol = '#888';
+    }
+    // 遅すぎは _dinoTick で自動判定
+    d.gradeT = 0;
   }
 
   _dinoTick() {
     const d   = this._dino;
     const ctx = this._ctx;
-    const { cw, ch, gY, px } = d;
+    const { cw, ch, gY, px, hitX } = d;
 
-    // Physics
-    d.vy += 0.55;
-    d.y   = Math.min(d.y + d.vy, gY - DRG_H * px);
-    if (d.y >= gY - DRG_H * px) { d.vy = 0; d.onG = true; }
+    // 障害物を移動
+    d.obs.forEach(o => { o.x -= d.speed; });
 
-    // Score & speed
-    d.score++;
-    d.speed = 2 + Math.floor(d.score / 80) * 0.4;
-
-    // Spawn obstacles
-    if (--d.nextObs <= 0) {
-      d.obs.push({ x: cw, h: 10 + Math.floor(Math.random() * 14) });
-      d.nextObs = 45 + Math.floor(Math.random() * 55);
-    }
-    d.obs = d.obs.filter(o => (o.x -= d.speed) > -15);
-
-    // Collision
-    const drx = 10, dry = d.y, drw = DRG_W * px - 4, drh = DRG_H * px - 4;
+    // 自動ミス判定：hitX を 0.5秒分通り過ぎたら miss
+    const missThresh = d.speed * 15;   // ≈0.5s at 30fps
     for (const o of d.obs) {
-      if (drx + drw > o.x + 2 && drx < o.x + 10 - 2 && dry + drh > gY - o.h + 2) {
-        d.alive = false;
-        this._dinoOver(d.score);
-        return;
+      if (o.state === 'incoming' && o.x < hitX - missThresh) {
+        o.state  = 'miss';
+        d.lives  = Math.max(0, d.lives - 1);
+        d.grade  = 'おそい！'; d.gradeCol = '#e05c2a'; d.gradeT = 0;
+        if (d.lives === 0) { d.alive = false; this._dinoOver(d.score); return; }
       }
     }
+    d.obs = d.obs.filter(o => o.x > -20);
 
-    // Animate dragon legs
-    if (++d.ft % 6 === 0) d.frame ^= 1;
+    // 新しい障害物をスポーン
+    if (--d.nextObs <= 0) {
+      const timeMs = ((cw - hitX) / d.speed) * 33;
+      d.obs.push({
+        x: cw, state: 'incoming',
+        hitTime: Date.now() + timeMs,
+        h: 12 + Math.floor(Math.random() * 10),
+      });
+      d.nextObs = 75 + Math.floor(Math.random() * 55);
+    }
 
-    // Draw
+    // ジャンプアニメ
+    let offY = 0;
+    if (d.jumping) {
+      d.jumpT++;
+      offY = -Math.sin((d.jumpT / 18) * Math.PI) * d.jumpH;
+      if (d.jumpT >= 18) { d.jumping = false; d.jumpT = 0; }
+    }
+
+    // グレード表示タイマー
+    if (d.grade) { if (++d.gradeT > 28) d.grade = null; }
+
+    // ドラゴンアニメ
+    if (++d.ft % 8 === 0) d.frame ^= 1;
+
+    // ── 描画 ──────────────────────────────────────────
     ctx.fillStyle = '#001400';
     ctx.fillRect(0, 0, cw, ch);
 
-    ctx.strokeStyle = '#1a5c1a';
-    ctx.lineWidth   = 1;
+    // 地面
+    ctx.strokeStyle = '#1a5c1a'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(0, gY); ctx.lineTo(cw, gY); ctx.stroke();
 
-    ctx.fillStyle  = '#00ff41';
-    ctx.font       = '9px monospace';
-    ctx.textAlign  = 'right';
-    ctx.fillText(String(d.score).padStart(5, '0'), cw - 4, 13);
-
-    ctx.fillStyle = '#2e7d32';
-    for (const o of d.obs) {
-      ctx.fillRect(o.x, gY - o.h, 10, o.h);
-      // cactus arms
-      const armY = gY - Math.round(o.h * 0.55);
-      ctx.fillRect(o.x - 4, armY, 4, Math.min(6, o.h - 4));
-      ctx.fillRect(o.x + 10, armY, 4, Math.min(6, o.h - 4));
+    // 判定ゾーン（次の障害物がどれくらい近いか）
+    const next = d.obs.find(o => o.state === 'incoming');
+    const inZone = next && Math.abs(next.x - hitX) < missThresh;
+    ctx.strokeStyle = inZone ? '#f5c518' : '#1f4a1f';
+    ctx.lineWidth   = inZone ? 2 : 1;
+    ctx.setLineDash(inZone ? [] : [2, 3]);
+    ctx.beginPath(); ctx.moveTo(hitX, gY - 30); ctx.lineTo(hitX, gY); ctx.stroke();
+    ctx.setLineDash([]);
+    if (inZone) {
+      ctx.fillStyle = 'rgba(245,197,24,0.08)';
+      ctx.fillRect(hitX - missThresh, gY - 30, missThresh * 2, 30);
     }
 
-    this._drawDragon(ctx, 10, d.y, d.frame, false, px);
+    // タイミングバー（障害物の接近度を可視化）
+    if (next && next.x > hitX) {
+      const ratio = 1 - Math.min(1, (next.x - hitX) / (cw - hitX));
+      const bw = cw * 0.55, bx = (cw - bw) / 2;
+      ctx.fillStyle = '#0d2b0d';
+      ctx.fillRect(bx, gY + 5, bw, 5);
+      ctx.fillStyle = ratio > 0.85 ? '#e05c2a' : ratio > 0.65 ? '#f9a825' : '#2ea82e';
+      ctx.fillRect(bx, gY + 5, bw * ratio, 5);
+    }
+
+    // JUMP! 表示
+    if (inZone) {
+      ctx.fillStyle = '#f5c518';
+      ctx.font      = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('▶ JUMP! ◀', cw / 2, gY - 10);
+    }
+
+    // 障害物
+    for (const o of d.obs) {
+      ctx.fillStyle = o.state === 'hit' ? '#3ea83e'
+                    : o.state === 'miss' ? '#e05c2a' : '#2e7d32';
+      ctx.fillRect(o.x, gY - o.h, 10, o.h);
+      const armY = gY - Math.round(o.h * 0.55);
+      ctx.fillRect(o.x - 4, armY, 4, 5);
+      ctx.fillRect(o.x + 10, armY, 4, 5);
+    }
+
+    // ドラゴン
+    this._drawDragon(ctx, 10, gY - DRG_H * px + offY, d.frame, false, px);
+
+    // HUD: ライフ + スコア
+    ctx.fillStyle = '#00ff41'; ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('♥'.repeat(d.lives) + '♡'.repeat(3 - d.lives), 4, 13);
+    ctx.textAlign = 'right';
+    ctx.fillText(`${d.score}pt`, cw - 4, 13);
+
+    // グレードテキスト
+    if (d.grade) {
+      ctx.fillStyle  = d.gradeCol;
+      ctx.font       = 'bold 10px monospace';
+      ctx.textAlign  = 'center';
+      ctx.fillText(d.grade, hitX, gY - 35);
+    }
   }
 
   _dinoOver(score) {
-    const expGain = Math.floor(score / 10);
+    const expGain = score * 2;   // 成功1回=EXP2
     this.s.exp += expGain;
     const lv = this._tryLevelUp();
     this._save();
