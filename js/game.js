@@ -13,49 +13,55 @@ const DRG_W = 20, DRG_H = 14;
 const DRG_PAL = [null, '#0d1a0d', '#1a5c1a', '#3ea83e', '#f5c518', '#e8d5a0', '#1a0d00'];
 
 //  columns:  01234567890123456789
+//
+//  S字ポーズ (行6-13):
+//    上カーブ (行6-9):  体が左へ。内側=右側 → 5を右に配置
+//    下カーブ (行9-11): 体が右へ。内側=左側 → 5を左に配置
+//    しっぽ  (行12-13): 下カーブ継続 → 5を左に配置
+//
 const DRG_F = [
-  // frame 0 — standard pose
-  '00000000000000140410' +  //  0: horns (4=gold)
-  '00000000000001441100' +  //  1: horn base
-  '00000000000012331000' +  //  2: head top
-  '00000000000012631000' +  //  3: head + eye (6=dark eye col13)
-  '00000000001112551000' +  //  4: neck start + cream snout (5)
-  '00000001111122551000' +  //  5: neck
-  '00000112333322111000' +  //  6: upper body
-  '00011233333321100000' +  //  7: body
-  '01122235555321000000' +  //  8: body + belly starts
-  '11223355555321000000' +  //  9: belly
-  '01235555553210000000' +  // 10: belly
-  '01255555321000000000' +  // 11: tail region
-  '01255321000000000000' +  // 12: tail
-  '00125100000000000000',   // 13: tail tip
+  // ── frame 0 ── (しっぽ先: 左振り)
+  '00000000001414100000' +  //  0: horns        ← そのまま
+  '00000000000041410000' +  //  1: horn base    ← そのまま
+  '00000000000012332000' +  //  2: head top     ← そのまま
+  '00000000000012633300' +  //  3: head + eye   ← そのまま
+  '00000000001112555510' +  //  4: neck + snout ← そのまま
+  '00000002222222555100' +  //  5: neck         ← そのまま
+  '00000033333355000000' +  //  6: 上カーブ開始 (5=右, col 6-11)
+  '00333333355500000000' +  //  7: 上カーブ中   (5=右, col 2-8)
+  '03333355500000000000' +  //  8: 最左端       (5=右, col 0-5)
+  '00033333355000000000' +  //  9: 折り返し     (5=右→移行, col 3-10)
+  '00000003333555000000' +  // 10: 下カーブ右へ (5=左, col 7-13)
+  '00000000333333550000' +  // 11: 最右端       (5=左, col 8-15)
+  '00000000003333500000' +  // 12: しっぽ       (5=左, col 8-14)
+  '00000033333000000000',   // 13: しっぽ先・左振り (col 5-10)
 
-  // frame 1 — tail wag (body same, tail shifts)
-  '00000000000000140410' +
-  '00000000000001441100' +
-  '00000000000012331000' +
-  '00000000000012631000' +
-  '00000000001112551000' +
-  '00000001111122551000' +
-  '00000112333322111000' +
-  '00011233333321100000' +
-  '01122235555321000000' +
-  '11223355555321000000' +
-  '01235555553210000000' +
-  '00125555321000000000' +  // 11: tail shifted up-left
-  '00012532100000000000' +  // 12: tail
-  '00001210000000000000',   // 13: tail tip
+  // ── frame 1 ── (しっぽ先: 右振り)
+  '00000000001414100000' +  //  0: horns        ← そのまま
+  '00000000000041410000' +  //  1: horn base    ← そのまま
+  '00000000000012332000' +  //  2: head top     ← そのまま
+  '00000000000012633300' +  //  3: head + eye   ← そのまま
+  '00000000001112555510' +  //  4: neck + snout ← そのまま
+  '00000002222222555100' +  //  5: neck         ← そのまま
+  '00000033333355000000' +  //  6: 上カーブ開始 (5=右, col 6-11)
+  '00333333355500000000' +  //  7: 上カーブ中   (5=右, col 2-8)
+  '03333355500000000000' +  //  8: 最左端       (5=右, col 0-5)
+  '00033333355000000000' +  //  9: 折り返し     (5=右→移行, col 3-10)
+  '00000003333555000000' +  // 10: 下カーブ右へ (5=左, col 7-13)
+  '00000000333333550000' +  // 11: 最右端       (5=左, col 8-15)
+  '00000000003333500000' +  // 12: しっぽ       (5=左, col 8-14)
+  '00000000003333300000',   // 13: しっぽ先・右振り (col 9-14)
 ];
 
 /* --- Enemy table ---------------------------------------------------- */
 const ENEMIES = [
-  { name: 'スライム',         maxHp: 12, atk: 2, def: 0, exp: 3,  art: '🟢' },
-  { name: 'コウモリ',         maxHp: 10, atk: 3, def: 0, exp: 4,  art: '🦇' },
-  { name: 'オオカミ',         maxHp: 18, atk: 4, def: 1, exp: 6,  art: '🐺' },
-  { name: 'ゴースト',         maxHp: 14, atk: 3, def: 1, exp: 5,  art: '👻' },
-  { name: 'フレイムドラゴン', maxHp: 30, atk: 6, def: 2, exp: 15, art: '🔥', rare: true },
-  { name: 'てつゴーレム',     maxHp: 40, atk: 4, def: 5, exp: 18, art: '⚙️', rare: true },
-  { name: 'まおう',           maxHp: 60, atk: 8, def: 3, exp: 40, art: '👑', boss: true },
+  { name: 'イカモンスター', maxHp: 12, atk: 2, def: 0, exp: 3,  img: 'images/character_monster_ika_green.svg' },
+  { name: 'フランケン',     maxHp: 10, atk: 3, def: 0, exp: 4,  img: 'images/character_monster_frankenstein_01_blue.svg' },
+  { name: 'オオカミ男',     maxHp: 18, atk: 4, def: 1, exp: 6,  img: 'images/character_monster_okamiotoko_02_gray.svg' },
+  { name: 'メドゥーサ',     maxHp: 14, atk: 3, def: 1, exp: 5,  img: 'images/character_monster_medusa_green.svg' },
+  { name: 'レッドドラゴン', maxHp: 30, atk: 6, def: 2, exp: 15, img: 'images/character_monster_dragon_02_red.svg', rare: true },
+  { name: 'てつゴーレム',   maxHp: 40, atk: 4, def: 5, exp: 18, img: 'images/character_monster_golem_gray.svg', rare: true },
+  { name: 'まおう',         maxHp: 60, atk: 8, def: 3, exp: 40, img: 'images/character_monster_mao_03.svg', boss: true },
 ];
 
 const GM_DEF = {
@@ -89,6 +95,13 @@ class DragonGame {
     this._load();
     this._buildDOM();
     this._bindEvents();
+    // SVG敵画像を事前ロード
+    this._imgs = {};
+    for (const e of ENEMIES) {
+      const img = new Image();
+      img.src = e.img;
+      this._imgs[e.img] = img;
+    }
   }
 
   start() {
@@ -305,7 +318,7 @@ class DragonGame {
     document.getElementById('gm-mm').hidden = true;
     document.getElementById('gm-bm').hidden = false;
     this._drawBattle();
-    this._msg(`${this._battle.enemy.art} ${this._battle.enemy.name}が\nあらわれた！`);
+    this._msg(`${this._battle.enemy.name}が\nあらわれた！`);
   }
 
   _drawBattle() {
@@ -318,10 +331,20 @@ class DragonGame {
     ctx.fillStyle = '#001400';
     ctx.fillRect(0, 0, cw, ch);
 
-    // Enemy emoji
-    ctx.font      = `${Math.round(ch * 0.42)}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText(e.art, cw * 0.72, ch * 0.60);
+    // Enemy SVG画像
+    const eImg   = this._imgs?.[e.img];
+    const iSize  = Math.round(Math.min(cw * 0.56, ch * 0.62));
+    const iX     = Math.round(cw * 0.40);
+    const iY     = Math.round(ch * 0.04);
+    if (eImg?.complete && eImg.naturalWidth > 0) {
+      ctx.drawImage(eImg, iX, iY, iSize, iSize);
+    } else {
+      // ロード前フォールバック（名前表示）
+      ctx.fillStyle = '#3ea83e';
+      ctx.font      = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(e.name, cw * 0.68, ch * 0.40);
+    }
 
     // Enemy HP bar
     ctx.fillStyle = '#0d3b0d';
@@ -334,15 +357,8 @@ class DragonGame {
     ctx.textAlign  = 'left';
     ctx.fillText(e.name, cw * 0.34, 5);
 
-    // Player dragon (small)
-    this._drawDragon(ctx, 6, ch * 0.22, this._drFrame, false, px);
-
-    // Player HP bar
-    const pf = s.hp / s.maxHp;
-    ctx.fillStyle = '#0d3b0d';
-    ctx.fillRect(6, ch - 10, cw * 0.28, 5);
-    ctx.fillStyle = pf > 0.5 ? '#2ea82e' : '#e05c2a';
-    ctx.fillRect(6, ch - 10, cw * 0.28 * pf, 5);
+    // Player dragon (small) — キャンバス下端に配置
+    this._drawDragon(ctx, 6, ch - DRG_H * px - 2, this._drFrame, false, px);
   }
 
   _battleAction(action) {
@@ -421,7 +437,7 @@ class DragonGame {
     return lv;
   }
 
-  /* ── タイミングジャンプゲーム ───────────────────────────────── */
+  /* ── タイミングスラッシュゲーム ─────────────────────────────── */
   _startDino() {
     this._mode = 'play';
     this._stopLoop();
@@ -431,24 +447,23 @@ class DragonGame {
     document.getElementById('gm-sp').hidden = true;
 
     const cw = this._canvas.width, ch = this._canvas.height;
-    const px = Math.max(2, Math.floor(this._px * 0.65));
-    const gY = ch - 16;
-    // 判定ライン: ドラゴンの右端から少し前
+    const px  = Math.max(2, Math.floor(this._px * 0.65));
+    const gY  = ch - 16;
     const hitX = 10 + DRG_W * px + 12;
 
     this._dino = {
-      alive: true,
-      lives: 3, score: 0,
+      alive: true, lives: 3, score: 0,
       speed: 2.2,
-      obs: [],          // { x, hitTime, h, state:'incoming'|'hit'|'miss' }
+      obs: [],    // { x, hitTime, h, type:'normal'|'danger', state, topX, botX, topY, slashT }
       hitX,
-      nextObs: 90,
-      jumping: false, jumpT: 0, jumpH: DRG_H * px * 1.1,
+      nextObs: 30,
+      slashFx: [],   // { x, h, t, bad }
+      lunging: false, lungeT: 0,
       grade: null, gradeT: 0, gradeCol: '#00ff41',
       frame: 0, ft: 0,
       px, gY, cw, ch,
     };
-    this._msg('障害物が来たらタップ！');
+    this._msg('緑→スラッシュ！ オレンジ→よける！');
 
     let last = 0;
     const loop = t => {
@@ -463,79 +478,114 @@ class DragonGame {
 
   _dinoJump() {
     const d = this._dino;
-    if (!d?.alive || d.jumping) return;
+    if (!d?.alive || d.lunging) return;
 
     const now = Date.now();
     const obs = d.obs.find(o => o.state === 'incoming');
     if (!obs) return;
 
-    const diff = now - obs.hitTime;   // 負=早い、正=遅い
+    const diff = now - obs.hitTime;
     const abs  = Math.abs(diff);
 
     if (abs <= 500) {
-      // 成功
-      obs.state   = 'hit';
-      d.jumping   = true;
-      d.jumpT     = 0;
-      d.score++;
-      if (d.score % 5 === 0) d.speed = Math.min(4.5, d.speed + 0.25);
-      if      (abs < 150) { d.grade = 'PERFECT!'; d.gradeCol = '#f5c518'; }
-      else if (abs < 320) { d.grade = 'GOOD';     d.gradeCol = '#3ea83e'; }
-      else                { d.grade = 'OK';        d.gradeCol = '#90ee90'; }
+      if (obs.type === 'danger') {
+        // ── オレンジボールを斬ってしまった → ダメージ ──
+        obs.state = 'punished'; obs.slashT = 0;
+        d.slashFx.push({ x: obs.x + 8, h: 16, t: 0, bad: true });
+        d.lives = Math.max(0, d.lives - 1);
+        d.grade = 'ダメージ！'; d.gradeCol = '#e05c2a'; d.gradeT = 0;
+        if (d.lives === 0) { d.alive = false; this._dinoOver(d.score); return; }
+      } else {
+        // ── 緑障害物スラッシュ成功 ──
+        obs.state  = 'slashed'; obs.slashT = 0;
+        obs.topX = obs.x; obs.botX = obs.x; obs.topY = 0;
+        d.slashFx.push({ x: obs.x + 5, h: obs.h, t: 0, bad: false });
+        d.score++;
+        d.speed = Math.min(8.0, d.speed + 0.3);
+        d.lunging = true; d.lungeT = 0;
+        if      (abs < 150) { d.grade = 'PERFECT!'; d.gradeCol = '#f5c518'; }
+        else if (abs < 320) { d.grade = 'GOOD';     d.gradeCol = '#3ea83e'; }
+        else                { d.grade = 'OK';        d.gradeCol = '#90ee90'; }
+        d.gradeT = 0;
+      }
     } else if (diff < -500) {
-      // 早すぎ（ペナルティなし）
-      d.grade = 'はやい！'; d.gradeCol = '#888';
+      d.grade = 'はやい！'; d.gradeCol = '#888'; d.gradeT = 0;
     }
-    // 遅すぎは _dinoTick で自動判定
-    d.gradeT = 0;
   }
 
   _dinoTick() {
     const d   = this._dino;
     const ctx = this._ctx;
     const { cw, ch, gY, px, hitX } = d;
+    const missThresh = d.speed * 15;
 
-    // 障害物を移動
-    d.obs.forEach(o => { o.x -= d.speed; });
-
-    // 自動ミス判定：hitX を 0.5秒分通り過ぎたら miss
-    const missThresh = d.speed * 15;   // ≈0.5s at 30fps
+    // ── 障害物を移動 ──
     for (const o of d.obs) {
-      if (o.state === 'incoming' && o.x < hitX - missThresh) {
-        o.state  = 'miss';
-        d.lives  = Math.max(0, d.lives - 1);
-        d.grade  = 'おそい！'; d.gradeCol = '#e05c2a'; d.gradeT = 0;
-        if (d.lives === 0) { d.alive = false; this._dinoOver(d.score); return; }
+      if (o.state === 'incoming' || o.state === 'miss') {
+        o.x -= d.speed;
+      } else if (o.state === 'slashed') {
+        o.slashT++;
+        o.topX -= 1.2; o.botX += 0.8; o.topY -= 1.0;
+      } else if (o.state === 'punished') {
+        o.slashT++;
       }
     }
-    d.obs = d.obs.filter(o => o.x > -20);
 
-    // 新しい障害物をスポーン
+    // ── 通過判定 ──
+    for (const o of d.obs) {
+      if (o.state !== 'incoming') continue;
+      if (o.x < hitX - missThresh) {
+        if (o.type === 'danger') {
+          // オレンジは避け成功 → ノーダメージ
+          o.state = 'passed';
+          d.grade = 'DODGE!'; d.gradeCol = '#3ea83e'; d.gradeT = 0;
+        } else {
+          // 緑を避けてしまった → ダメージ
+          o.state = 'miss';
+          d.lives = Math.max(0, d.lives - 1);
+          d.grade = 'おそい！'; d.gradeCol = '#e05c2a'; d.gradeT = 0;
+          if (d.lives === 0) { d.alive = false; this._dinoOver(d.score); return; }
+        }
+      }
+    }
+    // アニメ終了・画面外を除去
+    d.obs = d.obs.filter(o => {
+      if (o.state === 'slashed' || o.state === 'punished') return o.slashT < 22;
+      return o.x > -24;
+    });
+
+    // ── スポーン（2~3個同時に画面上に出るペース） ──
     if (--d.nextObs <= 0) {
-      const timeMs = ((cw - hitX) / d.speed) * 33;
+      const isDanger = Math.random() < 0.35;
+      const timeMs   = ((cw - hitX) / d.speed) * 33;
       d.obs.push({
         x: cw, state: 'incoming',
+        type: isDanger ? 'danger' : 'normal',
         hitTime: Date.now() + timeMs,
-        h: 12 + Math.floor(Math.random() * 10),
+        h: isDanger ? 16 : 12 + Math.floor(Math.random() * 10),
       });
-      d.nextObs = 75 + Math.floor(Math.random() * 55);
+      d.nextObs = 38 + Math.floor(Math.random() * 22);
     }
 
-    // ジャンプアニメ
-    let offY = 0;
-    if (d.jumping) {
-      d.jumpT++;
-      offY = -Math.sin((d.jumpT / 18) * Math.PI) * d.jumpH;
-      if (d.jumpT >= 18) { d.jumping = false; d.jumpT = 0; }
+    // ── スラッシュFXタイマー ──
+    d.slashFx.forEach(fx => fx.t++);
+    d.slashFx = d.slashFx.filter(fx => fx.t < 14);
+
+    // ── ランジアニメ ──
+    let offX = 0;
+    if (d.lunging) {
+      d.lungeT++;
+      offX = Math.sin((d.lungeT / 14) * Math.PI) * 10;
+      if (d.lungeT >= 14) { d.lunging = false; d.lungeT = 0; }
     }
 
-    // グレード表示タイマー
-    if (d.grade) { if (++d.gradeT > 28) d.grade = null; }
+    // ── グレードタイマー ──
+    if (d.grade && ++d.gradeT > 28) d.grade = null;
 
-    // ドラゴンアニメ
+    // ── ドラゴンアニメ ──
     if (++d.ft % 8 === 0) d.frame ^= 1;
 
-    // ── 描画 ──────────────────────────────────────────
+    // ════ 描画 ════════════════════════════════════════
     ctx.fillStyle = '#001400';
     ctx.fillRect(0, 0, cw, ch);
 
@@ -543,63 +593,142 @@ class DragonGame {
     ctx.strokeStyle = '#1a5c1a'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(0, gY); ctx.lineTo(cw, gY); ctx.stroke();
 
-    // 判定ゾーン（次の障害物がどれくらい近いか）
-    const next = d.obs.find(o => o.state === 'incoming');
-    const inZone = next && Math.abs(next.x - hitX) < missThresh;
-    ctx.strokeStyle = inZone ? '#f5c518' : '#1f4a1f';
+    // 次に来る障害物の種類を判定
+    const next     = d.obs.find(o => o.state === 'incoming');
+    const inZone   = next && Math.abs(next.x - hitX) < missThresh;
+    const isDanger = inZone && next.type === 'danger';
+
+    // 判定ライン
+    ctx.strokeStyle = inZone ? (isDanger ? '#e05c2a' : '#f5c518') : '#1f4a1f';
     ctx.lineWidth   = inZone ? 2 : 1;
     ctx.setLineDash(inZone ? [] : [2, 3]);
-    ctx.beginPath(); ctx.moveTo(hitX, gY - 30); ctx.lineTo(hitX, gY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(hitX, gY - 32); ctx.lineTo(hitX, gY); ctx.stroke();
     ctx.setLineDash([]);
     if (inZone) {
-      ctx.fillStyle = 'rgba(245,197,24,0.08)';
-      ctx.fillRect(hitX - missThresh, gY - 30, missThresh * 2, 30);
+      ctx.fillStyle = isDanger ? 'rgba(224,92,42,0.1)' : 'rgba(245,197,24,0.07)';
+      ctx.fillRect(hitX - missThresh, gY - 32, missThresh * 2, 32);
     }
 
-    // タイミングバー（障害物の接近度を可視化）
+    // タイミングバー
     if (next && next.x > hitX) {
       const ratio = 1 - Math.min(1, (next.x - hitX) / (cw - hitX));
       const bw = cw * 0.55, bx = (cw - bw) / 2;
       ctx.fillStyle = '#0d2b0d';
       ctx.fillRect(bx, gY + 5, bw, 5);
-      ctx.fillStyle = ratio > 0.85 ? '#e05c2a' : ratio > 0.65 ? '#f9a825' : '#2ea82e';
+      ctx.fillStyle = next.type === 'danger'
+        ? (ratio > 0.7 ? '#ff4444' : '#e05c2a')
+        : (ratio > 0.85 ? '#e05c2a' : ratio > 0.65 ? '#f9a825' : '#2ea82e');
       ctx.fillRect(bx, gY + 5, bw * ratio, 5);
     }
 
-    // JUMP! 表示
+    // SLASH! / DODGE! 表示
     if (inZone) {
-      ctx.fillStyle = '#f5c518';
+      ctx.fillStyle = isDanger ? '#ff4444' : '#f5c518';
       ctx.font      = 'bold 10px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('▶ JUMP! ◀', cw / 2, gY - 10);
+      ctx.fillText(isDanger ? '▶ DODGE! ◀' : '▶ SLASH! ◀', cw / 2, gY - 12);
     }
 
-    // 障害物
+    // ── 障害物の描画 ──
     for (const o of d.obs) {
-      ctx.fillStyle = o.state === 'hit' ? '#3ea83e'
-                    : o.state === 'miss' ? '#e05c2a' : '#2e7d32';
-      ctx.fillRect(o.x, gY - o.h, 10, o.h);
-      const armY = gY - Math.round(o.h * 0.55);
-      ctx.fillRect(o.x - 4, armY, 4, 5);
-      ctx.fillRect(o.x + 10, armY, 4, 5);
+      if (o.state === 'incoming') {
+        if (o.type === 'danger') {
+          // オレンジボール（円形）
+          const cx = o.x + 8, cy = gY - 8;
+          ctx.fillStyle = '#e05c2a';
+          ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#ffaa44'; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.stroke();
+          // 光の輝き（パルス代わりに点でハイライト）
+          ctx.fillStyle = 'rgba(255,200,80,0.6)';
+          ctx.beginPath(); ctx.arc(cx - 2, cy - 3, 2, 0, Math.PI * 2); ctx.fill();
+        } else {
+          // 緑障害物（棒＋腕）
+          ctx.fillStyle = '#2e7d32';
+          ctx.fillRect(o.x, gY - o.h, 10, o.h);
+          const armY = gY - Math.round(o.h * 0.55);
+          ctx.fillRect(o.x - 4, armY, 4, 5);
+          ctx.fillRect(o.x + 10, armY, 4, 5);
+        }
+
+      } else if (o.state === 'slashed') {
+        // 緑障害物：白↔金フラッシュで2分割
+        const alpha = Math.max(0, 1 - o.slashT / 22);
+        const flash = Math.floor(o.slashT / 3) % 2 === 0;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle   = flash ? '#ffffff' : '#f5c518';
+        const half = Math.ceil(o.h / 2);
+        ctx.fillRect(o.topX, gY - o.h + o.topY, 10, half);
+        ctx.fillRect(o.botX, gY - half, 10, half);
+        ctx.globalAlpha = 1;
+
+      } else if (o.state === 'punished') {
+        // オレンジボール：赤く膨らんで爆発
+        const alpha = Math.max(0, 1 - o.slashT / 22);
+        const flash = Math.floor(o.slashT / 3) % 2 === 0;
+        const rad   = 7 + o.slashT * 0.8;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle   = flash ? '#ff4444' : '#ff8c00';
+        ctx.beginPath(); ctx.arc(o.x + 8, gY - 8, rad, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+
+      } else if (o.state === 'miss') {
+        ctx.fillStyle = '#e05c2a';
+        ctx.fillRect(o.x, gY - o.h, 10, o.h);
+      }
+      // passed は描画しない（通り抜け済み）
     }
 
-    // ドラゴン
-    this._drawDragon(ctx, 10, gY - DRG_H * px + offY, d.frame, false, px);
+    // ── スラッシュ線エフェクト（X字）──
+    for (const fx of d.slashFx) {
+      const alpha  = 1 - fx.t / 14;
+      const spread = 10 + fx.t * 1.2;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      if (fx.bad) {
+        // 赤スラッシュ（ダメージ）
+        ctx.strokeStyle = '#ff4444'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(fx.x - spread * 0.6, gY - 2);
+        ctx.lineTo(fx.x + spread * 0.6, gY - fx.h - 6);
+        ctx.stroke();
+        ctx.strokeStyle = '#ff8c00'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(fx.x + spread * 0.5, gY - 2);
+        ctx.lineTo(fx.x - spread * 0.5, gY - fx.h - 6);
+        ctx.stroke();
+      } else {
+        // 白/金スラッシュ（成功）
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(fx.x - spread * 0.6, gY - 2);
+        ctx.lineTo(fx.x + spread * 0.6, gY - fx.h - 6);
+        ctx.stroke();
+        ctx.strokeStyle = '#f5c518'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(fx.x + spread * 0.5, gY - 2);
+        ctx.lineTo(fx.x - spread * 0.5, gY - fx.h - 6);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
 
-    // HUD: ライフ + スコア
+    // ── ドラゴン ──
+    this._drawDragon(ctx, 10 + offX, gY - DRG_H * px, d.frame, false, px);
+
+    // ── HUD ──
     ctx.fillStyle = '#00ff41'; ctx.font = '9px monospace';
     ctx.textAlign = 'left';
     ctx.fillText('♥'.repeat(d.lives) + '♡'.repeat(3 - d.lives), 4, 13);
     ctx.textAlign = 'right';
     ctx.fillText(`${d.score}pt`, cw - 4, 13);
 
-    // グレードテキスト
+    // ── グレード ──
     if (d.grade) {
       ctx.fillStyle  = d.gradeCol;
       ctx.font       = 'bold 10px monospace';
       ctx.textAlign  = 'center';
-      ctx.fillText(d.grade, hitX, gY - 35);
+      ctx.fillText(d.grade, hitX, gY - 37);
     }
   }
 
@@ -643,13 +772,9 @@ class DragonGame {
       ctx.fillStyle = '#001400';
       ctx.fillRect(0, 0, cw, ch);
 
-      ctx.strokeStyle = '#0d3b0d';
-      ctx.lineWidth   = 1;
-      ctx.beginPath(); ctx.moveTo(0, ch - 10); ctx.lineTo(cw, ch - 10); ctx.stroke();
-
       const dw = DRG_W * px, dh = DRG_H * px;
       const dx = Math.round(cw * this._drX / 100) - dw / 2;
-      const dy = ch - 10 - dh;
+      const dy = ch - dh - 2;
       this._drawDragon(ctx, dx, dy, this._drFrame, this._drDir < 0, px);
     };
     this._raf = requestAnimationFrame(loop);
